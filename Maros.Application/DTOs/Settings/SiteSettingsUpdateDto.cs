@@ -15,6 +15,8 @@ public record SiteSettingsUpdateDto(
     string? TikTok,
     [MaxLength(30)] string WhatsappNumber,
     string WhatsappDefaultMessage,
+    string? Address,
+    string? BusinessHours,
     string EmailFromName,
     [EmailAddress] string EmailFromAddress,
     bool NotifyNewQuotation,

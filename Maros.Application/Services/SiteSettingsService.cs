@@ -41,6 +41,9 @@ public class SiteSettingsService : ISiteSettingsService
         settings.WhatsappNumber = request.WhatsappNumber;
         settings.WhatsappDefaultMessage = request.WhatsappDefaultMessage;
 
+        settings.Address = request.Address ?? string.Empty;
+        settings.BusinessHours = request.BusinessHours ?? string.Empty;
+
         settings.EmailFromName = request.EmailFromName;
         settings.EmailFromAddress = request.EmailFromAddress;
         settings.NotifyNewQuotation = request.NotifyNewQuotation;
@@ -83,6 +86,9 @@ public class SiteSettingsService : ISiteSettingsService
             settings.Facebook,
             settings.TikTok,
             settings.WhatsappNumber,
+            settings.EmailFromAddress,
+            settings.Address,
+            settings.BusinessHours,
             settings.SeoMetaTitle,
             settings.SeoMetaDescription,
             settings.SeoSocialImageUrl,
@@ -96,6 +102,7 @@ public class SiteSettingsService : ISiteSettingsService
         s.Instagram, s.Facebook, s.TikTok,
         s.WhatsappNumber, s.WhatsappDefaultMessage,
         s.EmailFromName, s.EmailFromAddress, s.NotifyNewQuotation,
+        s.Address, s.BusinessHours,
         s.SeoMetaTitle, s.SeoMetaDescription, s.SeoSocialImageUrl,
         s.LegalTermsUrl, s.LegalPrivacyUrl, s.LegalReturnsPolicy,
         s.CustomDomain, s.SslEnabled,

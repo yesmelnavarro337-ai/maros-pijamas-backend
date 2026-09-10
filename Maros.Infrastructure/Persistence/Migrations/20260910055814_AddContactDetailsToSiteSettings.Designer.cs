@@ -4,6 +4,7 @@ using Maros.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Maros.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(MarosDbContext))]
-    partial class MarosDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260910055814_AddContactDetailsToSiteSettings")]
+    partial class AddContactDetailsToSiteSettings
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

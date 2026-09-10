@@ -19,6 +19,8 @@ public static class SiteSettingsSeed
             Language = "Español",
             WhatsappNumber = string.Empty,
             WhatsappDefaultMessage = "¡Hola! Me interesa hacer un pedido de pijamas personalizadas.",
+            Address = "Mz 3 Casa 98 Urb. Doña Clara, Valledupar",
+            BusinessHours = "Lunes a Sábado · 8:00 a.m. – 6:00 p.m.",
             EmailFromName = "Maro's Pijamas",
             EmailFromAddress = string.Empty,
             BackupFrequency = "semanal",

@@ -16,6 +16,8 @@ public record SiteSettingsResponseDto(
     string EmailFromName,
     string EmailFromAddress,
     bool NotifyNewQuotation,
+    string Address,
+    string BusinessHours,
     string SeoMetaTitle,
     string SeoMetaDescription,
     string? SeoSocialImageUrl,

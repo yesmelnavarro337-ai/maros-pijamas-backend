@@ -22,6 +22,10 @@ public class SiteSettings : BaseEntity
     public string WhatsappNumber { get; set; } = string.Empty;
     public string WhatsappDefaultMessage { get; set; } = string.Empty;
 
+    // Contacto
+    public string Address { get; set; } = string.Empty;
+    public string BusinessHours { get; set; } = string.Empty;
+
     // Email
     public string EmailFromName { get; set; } = string.Empty;
     public string EmailFromAddress { get; set; } = string.Empty;
