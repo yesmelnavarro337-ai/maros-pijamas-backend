@@ -1,0 +1,17 @@
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Infrastructure\bin\Debug\net10.0\Maros.Infrastructure.deps.json
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Infrastructure\bin\Debug\net10.0\Maros.Infrastructure.dll
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Infrastructure\bin\Debug\net10.0\Maros.Infrastructure.pdb
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Infrastructure\bin\Debug\net10.0\Maros.Application.dll
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Infrastructure\bin\Debug\net10.0\Maros.Domain.dll
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Infrastructure\bin\Debug\net10.0\Maros.Domain.pdb
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Infrastructure\bin\Debug\net10.0\Maros.Application.pdb
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Infrastructure\obj\Debug\net10.0\Maros.Infrastructure.csproj.AssemblyReference.cache
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Infrastructure\obj\Debug\net10.0\Maros.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Infrastructure\obj\Debug\net10.0\Maros.Infrastructure.AssemblyInfoInputs.cache
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Infrastructure\obj\Debug\net10.0\Maros.Infrastructure.AssemblyInfo.cs
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Infrastructure\obj\Debug\net10.0\Maros.Infrastructure.csproj.CoreCompileInputs.cache
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Infrastructure\obj\Debug\net10.0\Maros.In.F1B5A121.Up2Date
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Infrastructure\obj\Debug\net10.0\Maros.Infrastructure.dll
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Infrastructure\obj\Debug\net10.0\refint\Maros.Infrastructure.dll
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Infrastructure\obj\Debug\net10.0\Maros.Infrastructure.pdb
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Infrastructure\obj\Debug\net10.0\ref\Maros.Infrastructure.dll

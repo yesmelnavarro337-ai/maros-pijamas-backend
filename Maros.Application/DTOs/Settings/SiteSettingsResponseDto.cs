@@ -1,0 +1,32 @@
+namespace Maros.Application.DTOs.Settings;
+
+public record SiteSettingsResponseDto(
+    string SiteName,
+    string Description,
+    string Currency,
+    string Timezone,
+    string Language,
+    bool MaintenanceMode,
+    string? LogoUrl,
+    string? Instagram,
+    string? Facebook,
+    string? TikTok,
+    string WhatsappNumber,
+    string WhatsappDefaultMessage,
+    string EmailFromName,
+    string EmailFromAddress,
+    bool NotifyNewQuotation,
+    string SeoMetaTitle,
+    string SeoMetaDescription,
+    string? SeoSocialImageUrl,
+    string LegalTermsUrl,
+    string LegalPrivacyUrl,
+    string LegalReturnsPolicy,
+    string CustomDomain,
+    bool SslEnabled,
+    bool AutoBackupEnabled,
+    string BackupFrequency,
+    DateTime? LastBackupDate,
+    bool TwoFactorEnabled,
+    int SessionTimeoutMinutes
+);

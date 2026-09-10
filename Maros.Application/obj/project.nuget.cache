@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "8O1FCbaj0Ko=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Jhonirys\\OneDrive - Universidad Nacional Abierta y a Distancia\\Apps\\Desktop\\MAROS-PIJAMAS\\backend\\Maros.Application\\Maros.Application.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Jhonirys\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\10.0.10\\microsoft.extensions.dependencyinjection.abstractions.10.0.10.nupkg.sha512"
+  ],
+  "logs": []
+}

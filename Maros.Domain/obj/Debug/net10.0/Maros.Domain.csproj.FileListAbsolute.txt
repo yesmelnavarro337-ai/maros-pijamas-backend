@@ -1,0 +1,11 @@
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Domain\bin\Debug\net10.0\Maros.Domain.deps.json
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Domain\bin\Debug\net10.0\Maros.Domain.dll
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Domain\bin\Debug\net10.0\Maros.Domain.pdb
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Domain\obj\Debug\net10.0\Maros.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Domain\obj\Debug\net10.0\Maros.Domain.AssemblyInfoInputs.cache
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Domain\obj\Debug\net10.0\Maros.Domain.AssemblyInfo.cs
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Domain\obj\Debug\net10.0\Maros.Domain.csproj.CoreCompileInputs.cache
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Domain\obj\Debug\net10.0\Maros.Domain.dll
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Domain\obj\Debug\net10.0\refint\Maros.Domain.dll
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Domain\obj\Debug\net10.0\Maros.Domain.pdb
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Domain\obj\Debug\net10.0\ref\Maros.Domain.dll
