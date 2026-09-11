@@ -1,0 +1,33 @@
+## .NET build artifacts
+[Bb]in/
+[Oo]bj/
+
+## Visual Studio / Rider temp files
+.vs/
+.vsconfig
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vsidx
+.vsidx2
+
+## Test / coverage
+[Tt]est[Rr]esult*/
+*.coverage
+*.coveragexml
+*.trx
+
+## NuGet
+*.nupkg
+*.snupkg
+packages/
+
+## Logs
+*.log
+logs/
+
+## Misc
+*.tmp
+.idea/
+.vscode/

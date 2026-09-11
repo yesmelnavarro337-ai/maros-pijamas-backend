@@ -1,10 +1,12 @@
 using System.Text;
 using Maros.Api.Middleware;
 using Maros.Application;
+using Maros.Application.Options;
 using Maros.Infrastructure;
 using Maros.Infrastructure.Persistence;
 using Maros.Infrastructure.Persistence.Context;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
@@ -55,6 +57,7 @@ builder.Services.AddOpenApi(options =>
 
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.Configure<InvitationOptions>(builder.Configuration.GetSection(InvitationOptions.SectionName));
 
 // ─── CORS ──────────────────────────────────────────────────────────
 var allowedOrigins = builder.Configuration
@@ -105,6 +108,15 @@ builder.Services.AddAuthorization(options =>
 
 var app = builder.Build();
 
+// ─── Forwarded Headers (Render / reverse proxy) ────────────────
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+    ForwardLimit = null,
+    KnownNetworks = { },
+    KnownProxies = { }
+});
+
 // ─── Middleware pipeline ──────────────────────────────────────────
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
@@ -121,6 +133,7 @@ if (app.Environment.IsDevelopment())
     var db = scope.ServiceProvider.GetRequiredService<MarosDbContext>();
     await SeedData.SeedInitialAdminAsync(db, app.Configuration);
     await SiteSettingsSeed.SeedDefaultAsync(db);
+    await PageHeaderSeed.SeedDefaultAsync(db);
 }
 
 app.UseHttpsRedirection();
@@ -128,6 +141,9 @@ app.UseCors("MarosCorsPolicy");
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+// ─── Health check (Render / monitoreo) ───────────────────────────
+app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 
 app.MapControllers();
 

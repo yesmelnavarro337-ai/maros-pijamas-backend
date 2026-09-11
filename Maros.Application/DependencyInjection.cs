@@ -24,9 +24,11 @@ public static class DependencyInjection
         services.AddScoped<ITestimonialService, TestimonialService>();
         services.AddScoped<IFaqService, FaqService>();
         services.AddScoped<IBannerService, BannerService>();
+        services.AddScoped<IPageHeaderService, PageHeaderService>();
         services.AddScoped<ISiteSettingsService, SiteSettingsService>();
         services.AddScoped<IHomeService, HomeService>();
         services.AddScoped<IContactMessageService, ContactMessageService>();
+        services.AddScoped<IInvitationService, InvitationService>();
         return services;
     }
 }

@@ -15,6 +15,7 @@ public class Product : BaseEntity
     public bool FeaturedHome { get; set; }
     public bool AllowCustomization { get; set; } = true;
     public string DeliveryTime { get; set; } = string.Empty;
+    public bool IsDeleted { get; set; }
 
     // SEO
     public string SeoTitle { get; set; } = string.Empty;

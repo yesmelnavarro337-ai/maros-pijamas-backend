@@ -2,9 +2,12 @@ using System.Security.Cryptography;
 using Maros.Application.Common;
 using Maros.Application.DTOs.Users;
 using Maros.Application.Interfaces;
+using Maros.Application.Options;
 using Maros.Domain.Entities;
 using Maros.Domain.Enums;
 using Maros.Domain.Interfaces;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Maros.Application.Services;
 
@@ -12,11 +15,22 @@ public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
     private readonly IPasswordHasher _passwordHasher;
+    private readonly IEmailService _emailService;
+    private readonly ILogger<UserService> _logger;
+    private readonly IOptions<InvitationOptions> _invitationOptions;
 
-    public UserService(IUserRepository userRepository, IPasswordHasher passwordHasher)
+    public UserService(
+        IUserRepository userRepository,
+        IPasswordHasher passwordHasher,
+        IEmailService emailService,
+        ILogger<UserService> logger,
+        IOptions<InvitationOptions> invitationOptions)
     {
         _userRepository = userRepository;
         _passwordHasher = passwordHasher;
+        _emailService = emailService;
+        _logger = logger;
+        _invitationOptions = invitationOptions;
     }
 
     public async Task<List<UserResponseDto>> GetAllAsync()
@@ -41,17 +55,51 @@ public class UserService : IUserService
             Status = UserStatus.Pendiente,
         };
 
-        // No existe todavía un flujo de invitación por correo (Fase futura de email).
-        // Se genera una contraseña temporal aleatoria que el usuario no conoce;
-        // el usuario queda en estado "Pendiente" hasta que se implemente
-        // la aceptación de invitación real.
+        // Mientras el usuario no acepte la invitación, se guarda un hash de
+        // una contraseña temporal aleatoria (que nadie conoce) para conservar
+        // la integridad del campo PasswordHash. Al aceptar, se reemplaza por
+        // la contraseña que elija el propio usuario.
         var temporaryPassword = Convert.ToBase64String(RandomNumberGenerator.GetBytes(24));
         user.PasswordHash = _passwordHasher.Hash(temporaryPassword);
+
+        user.InviteToken = GenerateInviteToken();
+        user.InviteTokenExpiresAt = DateTime.UtcNow.AddHours(_invitationOptions.Value.ExpiresInHours);
 
         await _userRepository.AddAsync(user);
         await _userRepository.SaveChangesAsync();
 
+        await SendInvitationEmailAsync(user);
+
         return ToDto(user);
+    }
+
+    private async Task SendInvitationEmailAsync(User user)
+    {
+        if (string.IsNullOrWhiteSpace(user.InviteToken))
+            return;
+
+        var baseUrl = _invitationOptions.Value.AcceptUrl.TrimEnd('/');
+        var acceptUrl = $"{baseUrl}?token={Uri.EscapeDataString(user.InviteToken)}";
+
+        try
+        {
+            await _emailService.SendInvitationAsync(user.Email, user.Name, acceptUrl);
+        }
+        catch (Exception ex)
+        {
+            // El usuario ya quedó creado con estado "Pendiente"; un fallo al
+            // enviar el correo no debe convertir la invitación en un error 500.
+            _logger.LogWarning(ex, "No se pudo enviar el correo de invitación a {Email}. Enlace: {AcceptUrl}", user.Email, acceptUrl);
+        }
+    }
+
+    private static string GenerateInviteToken()
+    {
+        var bytes = RandomNumberGenerator.GetBytes(32);
+        return Convert.ToBase64String(bytes)
+            .TrimEnd('=')
+            .Replace('+', '-')
+            .Replace('/', '_');
     }
 
     public async Task<UserResponseDto> UpdateAsync(Guid id, UpdateUserRequestDto request)
@@ -96,7 +144,10 @@ public class UserService : IUserService
         var user = await _userRepository.GetByIdAsync(id)
             ?? throw new AppException("Usuario no encontrado.", 404);
 
-        _userRepository.Remove(user);
+        // Borrado lógico: no removemos el registro físico porque puede estar
+        // referenciado por otras entidades. Solo lo desactivamos.
+        user.Status = UserStatus.Inactivo;
+        user.UpdatedAt = DateTime.UtcNow;
         await _userRepository.SaveChangesAsync();
     }
 

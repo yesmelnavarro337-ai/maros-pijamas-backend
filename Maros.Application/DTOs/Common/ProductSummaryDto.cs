@@ -5,5 +5,6 @@ public record ProductSummaryDto(
     string Name,
     string Slug,
     decimal BasePrice,
-    string? ThumbnailUrl
+    string? ThumbnailUrl,
+    List<string> Images
 );

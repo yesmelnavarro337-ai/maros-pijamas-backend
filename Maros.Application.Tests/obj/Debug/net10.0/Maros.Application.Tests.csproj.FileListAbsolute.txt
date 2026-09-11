@@ -106,3 +106,7 @@ C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Des
 C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Application.Tests\obj\Debug\net10.0\Maros.Application.Tests.pdb
 C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Application.Tests\obj\Debug\net10.0\Maros.Application.Tests.genruntimeconfig.cache
 C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Application.Tests\obj\Debug\net10.0\ref\Maros.Application.Tests.dll
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Application.Tests\obj\Debug\net10.0\Maros.Application.Tests.sourcelink.json
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Application.Tests\bin\Debug\net10.0\Microsoft.Extensions.Logging.Abstractions.dll
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Application.Tests\bin\Debug\net10.0\Microsoft.Extensions.Options.dll
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Application.Tests\bin\Debug\net10.0\Microsoft.Extensions.Primitives.dll

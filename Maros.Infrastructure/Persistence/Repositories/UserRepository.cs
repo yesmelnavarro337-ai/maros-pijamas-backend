@@ -20,6 +20,9 @@ public class UserRepository : IUserRepository
     public Task<User?> GetByIdAsync(Guid id) =>
         _context.Users.FirstOrDefaultAsync(u => u.Id == id);
 
+    public Task<User?> GetByInviteTokenAsync(string token) =>
+        _context.Users.FirstOrDefaultAsync(u => u.InviteToken == token);
+
     public Task<List<User>> GetAllAsync() =>
         _context.Users.OrderBy(u => u.Name).ToListAsync();
 

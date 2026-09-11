@@ -17,7 +17,7 @@ public static class DependencyInjection
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
         services.AddDbContext<MarosDbContext>(options =>
-            options.UseSqlServer(connectionString));
+            options.UseNpgsql(connectionString));
 
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IPasswordHasher, PasswordHasher>();
@@ -36,9 +36,11 @@ public static class DependencyInjection
         services.AddScoped<ITestimonialRepository, TestimonialRepository>();
         services.AddScoped<IFaqRepository, FaqRepository>();
         services.AddScoped<IBannerRepository, BannerRepository>();
+        services.AddScoped<IPageHeaderRepository, PageHeaderRepository>();
         services.AddScoped<ISiteSettingsRepository, SiteSettingsRepository>();
         services.AddScoped<IPaginationService, PaginationService>();
         services.AddScoped<IContactMessageRepository, ContactMessageRepository>();
+        services.AddScoped<IEmailService, SmtpEmailService>();
         return services;
     }
 }

@@ -27,6 +27,7 @@ public class MarosDbContext : DbContext
     public DbSet<Testimonial> Testimonials => Set<Testimonial>();
     public DbSet<Faq> Faqs => Set<Faq>();
     public DbSet<Banner> Banners => Set<Banner>();
+    public DbSet<PageHeader> PageHeaders => Set<PageHeader>();
     public DbSet<SiteSettings> SiteSettings => Set<SiteSettings>();
     public DbSet<ContactMessage> ContactMessages => Set<ContactMessage>();
 

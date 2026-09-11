@@ -2,9 +2,8 @@ namespace Maros.Domain.Enums;
 
 public enum GalleryCategory
 {
-    Familia,
+    ClientesReales,
+    Navidad,
     Parejas,
-    Ninos,
-    Batas,
-    Empresas
+    DetallesBordado
 }

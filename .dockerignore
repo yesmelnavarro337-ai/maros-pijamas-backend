@@ -1,0 +1,13 @@
+**/.git
+**/.vs
+**/.vscode
+**/bin
+**/obj
+**/node_modules
+**/.next
+**/.opencode
+**/maros-admin
+**/maros-web
+**/*.md
+**/docker-compose*
+**/.env*

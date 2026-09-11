@@ -6,8 +6,10 @@ public record QuotationItemResponseDto(
     Guid Id,
     Guid? ProductId,
     string ProductName,
+    string? ProductImageUrl,
     string Size,
     int Quantity,
     List<QuotationItemOptionDto> SelectedOptions,
-    string? EmbroideryText
+    string? EmbroideryText,
+    decimal EstimatedUnitPrice
 );

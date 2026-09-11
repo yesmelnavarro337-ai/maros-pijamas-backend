@@ -11,4 +11,6 @@ public class User : BaseEntity
     public UserRole Role { get; set; }
     public UserStatus Status { get; set; } = UserStatus.Pendiente;
     public DateTime? LastAccessAt { get; set; }
+    public string? InviteToken { get; set; }
+    public DateTime? InviteTokenExpiresAt { get; set; }
 }

@@ -150,7 +150,8 @@ public class SeasonService : ISeasonService
                 p.Name,
                 p.Slug,
                 p.BasePrice,
-                p.Images.OrderBy(i => i.Order).Select(i => i.Url).FirstOrDefault()
+                p.Images.OrderBy(i => i.Order).Select(i => i.Url).FirstOrDefault(),
+                p.Images.OrderBy(i => i.Order).Select(i => i.Url).ToList()
             ))
             .ToList();
 

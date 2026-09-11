@@ -7,6 +7,7 @@ public record ProductPublicListDto(
     string CategoryName,
     decimal BasePrice,
     string? ThumbnailUrl,
+    List<string> Images,
     bool Available,
     List<string> Sizes,
     List<ProductPublicColorDto> Colors

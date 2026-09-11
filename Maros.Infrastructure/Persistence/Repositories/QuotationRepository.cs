@@ -16,7 +16,8 @@ public class QuotationRepository : IQuotationRepository
             .Include(q => q.Customer)
             .Include(q => q.ReferenceImages)
             .Include(q => q.Items)
-                .ThenInclude(i => i.Product)
+                .ThenInclude(i => i.Product!)
+                    .ThenInclude(p => p.Images)
             .Include(q => q.Items)
                 .ThenInclude(i => i.SelectedOptions)
                     .ThenInclude(o => o.CustomizationOption);

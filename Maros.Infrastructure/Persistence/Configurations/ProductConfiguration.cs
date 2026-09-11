@@ -20,6 +20,8 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.Property(p => p.SeoSlug).HasMaxLength(220);
 
         builder.HasIndex(p => p.Slug).IsUnique();
+        builder.HasIndex(p => p.IsDeleted);
+        builder.HasQueryFilter(p => !p.IsDeleted);
 
         builder.HasOne(p => p.Category)
             .WithMany(c => c.Products)

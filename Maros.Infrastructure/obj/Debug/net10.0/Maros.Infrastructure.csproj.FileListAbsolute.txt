@@ -15,3 +15,4 @@ C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Des
 C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Infrastructure\obj\Debug\net10.0\refint\Maros.Infrastructure.dll
 C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Infrastructure\obj\Debug\net10.0\Maros.Infrastructure.pdb
 C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Infrastructure\obj\Debug\net10.0\ref\Maros.Infrastructure.dll
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Infrastructure\obj\Debug\net10.0\Maros.Infrastructure.sourcelink.json

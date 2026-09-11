@@ -7,6 +7,7 @@ public record ProductPublicDetailDto(
     string Description,
     decimal BasePrice,
     string CategoryName,
+    Guid CategoryId,
     List<string> Images,
     List<string> Sizes,
     List<ProductColorPublicDto> Colors,
@@ -17,5 +18,6 @@ public record ProductPublicDetailDto(
     string SeoTitle,
     string SeoDescription,
     string? SeoSocialImageUrl,
-    string? SeoAltText
+    string? SeoAltText,
+    List<Guid> CollectionIds
 );

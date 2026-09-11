@@ -137,7 +137,11 @@ public class ProductService : IProductService
         var product = await _productRepository.GetByIdAsync(id)
             ?? throw new AppException("Producto no encontrado.", 404);
 
-        _productRepository.Remove(product);
+        // Borrado lógico: no removemos el registro físico porque puede estar
+        // referenciado por otras entidades (cotizaciones, temporadas, etc.).
+        // Solo lo desactivamos para que deje de aparecer en el catálogo.
+        product.IsDeleted = true;
+        product.UpdatedAt = DateTime.UtcNow;
         await _productRepository.SaveChangesAsync();
     }
 
@@ -159,7 +163,8 @@ public class ProductService : IProductService
         var products = await _productRepository.GetFeaturedHomeAsync();
         return products.Select(p => new DTOs.Common.ProductSummaryDto(
             p.Id, p.Name, p.Slug, p.BasePrice,
-            p.Images.OrderBy(i => i.Order).Select(i => i.Url).FirstOrDefault()
+            p.Images.OrderBy(i => i.Order).Select(i => i.Url).FirstOrDefault(),
+            p.Images.OrderBy(i => i.Order).Select(i => i.Url).ToList()
         )).ToList();
     }
 
@@ -246,35 +251,38 @@ public class ProductService : IProductService
     private static ProductPublicListDto ToPublicListDto(Product p) => new(
         p.Id, p.Name, p.Slug, p.Category?.Name ?? string.Empty, p.BasePrice,
         p.Images.OrderBy(i => i.Order).Select(i => i.Url).FirstOrDefault(),
+        p.Images.OrderBy(i => i.Order).Select(i => i.Url).ToList(),
         p.Variants.Any(v => v.Stock > 0),
         p.Variants.Select(v => v.Size).Distinct().ToList(),
         p.Variants.Select(v => new ProductPublicColorDto(v.ColorName, v.ColorHex)).DistinctBy(c => c.Name).ToList()
     );
 
-    private static ProductPublicDetailDto ToPublicDetailDto(Product p) => new(
-        p.Id,
-        p.Name,
-        p.Slug,
-        p.Description,
-        p.BasePrice,
-        p.Category?.Name ?? string.Empty,
-        p.Images.OrderBy(i => i.Order).Select(i => i.Url).ToList(),
-        p.Variants.Select(v => v.Size).Distinct().ToList(),
-        p.Variants
-            .Select(v => new ProductColorPublicDto(v.ColorName, v.ColorHex))
-            .DistinctBy(c => c.Name)
-            .ToList(),
-        p.Variants
-            .Select(v => new ProductPublicVariantDto(v.Size, v.ColorName, v.ColorHex, v.Stock > 0))
-            .ToList(),
-        p.Variants.Any(v => v.Stock > 0),
-        p.AllowCustomization,
-        p.DeliveryTime,
-        p.SeoTitle,
-        p.SeoDescription,
-        p.SeoSocialImageUrl,
-        p.SeoAltText
-    );
+private static ProductPublicDetailDto ToPublicDetailDto(Product p) => new(
+          p.Id,
+          p.Name,
+          p.Slug,
+          p.Description,
+          p.BasePrice,
+          p.Category?.Name ?? string.Empty,
+          p.CategoryId,
+          p.Images.OrderBy(i => i.Order).Select(i => i.Url).ToList(),
+          p.Variants.Select(v => v.Size).Distinct().ToList(),
+          p.Variants
+              .Select(v => new ProductColorPublicDto(v.ColorName, v.ColorHex))
+              .DistinctBy(c => c.Name)
+              .ToList(),
+          p.Variants
+              .Select(v => new ProductPublicVariantDto(v.Size, v.ColorName, v.ColorHex, v.Stock > 0))
+              .ToList(),
+          p.Variants.Any(v => v.Stock > 0),
+          p.AllowCustomization,
+          p.DeliveryTime,
+          p.SeoTitle,
+          p.SeoDescription,
+          p.SeoSocialImageUrl,
+          p.SeoAltText,
+          p.ProductCollections.Select(pc => pc.CollectionId).ToList()
+      );
 
     private static ProductResponseDto ToDto(Product p) => new(
         p.Id, p.Name, p.Slug, p.CategoryId, p.Category?.Name ?? string.Empty, p.Description,
