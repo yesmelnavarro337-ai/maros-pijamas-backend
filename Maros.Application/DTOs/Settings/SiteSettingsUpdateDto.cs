@@ -10,6 +10,8 @@ public record SiteSettingsUpdateDto(
     string Language,
     bool MaintenanceMode,
     string? LogoUrl,
+    string? FaviconUrl,
+    List<HomeSectionDto>? HomeSections,
     string? Instagram,
     string? Facebook,
     string? TikTok,

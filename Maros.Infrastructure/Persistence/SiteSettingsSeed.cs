@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Maros.Domain.Entities;
 using Maros.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
@@ -6,6 +7,16 @@ namespace Maros.Infrastructure.Persistence;
 
 public static class SiteSettingsSeed
 {
+    private static readonly List<object> DefaultHomeSections =
+    [
+        new { id = "hero", label = "Hero principal", enabled = true, order = 1 },
+        new { id = "active-season", label = "Colección / Temporada activa", enabled = true, order = 2 },
+        new { id = "featured-products", label = "Productos destacados", enabled = true, order = 3 },
+        new { id = "testimonials", label = "Testimonios", enabled = true, order = 4 },
+        new { id = "blog", label = "Últimos artículos del blog", enabled = false, order = 5 },
+        new { id = "newsletter", label = "Suscripción por correo", enabled = false, order = 6 },
+    ];
+
     public static async Task SeedDefaultAsync(MarosDbContext context)
     {
         if (await context.SiteSettings.AnyAsync()) return;
@@ -25,6 +36,7 @@ public static class SiteSettingsSeed
             EmailFromAddress = string.Empty,
             BackupFrequency = "semanal",
             SessionTimeoutMinutes = 60,
+            HomeSectionsJson = JsonSerializer.Serialize(DefaultHomeSections),
         });
 
         await context.SaveChangesAsync();

@@ -9,7 +9,7 @@ namespace Maros.Infrastructure.ExternalServices;
 public class SmtpEmailService : IEmailService
 {
     private const int DefaultPort = 587;
-    private const string DefaultFrom = "yesmelnavarro337@gmail.com";
+    private const string DefaultFrom = "marospijamas@gmail.com";
     private const string DefaultFromName = "Maro's Pijamas";
 
     private readonly SmtpSettings _settings;
@@ -79,7 +79,7 @@ public class SmtpEmailService : IEmailService
               <td align="center" style="padding:32px 16px">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden">
                   <tr>
-                    <td style="background:#1c1917;color:#ffffff;padding:28px 32px">
+                    <td style="background:#a38a3e;color:#ffffff;padding:28px 32px">
                       <p style="margin:0;font-size:22px;font-weight:bold">Maro's Pijamas</p>
                     </td>
                   </tr>
@@ -91,11 +91,11 @@ public class SmtpEmailService : IEmailService
                         Para completar tu registro, crea tu contraseña con el siguiente enlace.
                       </p>
                       <p style="margin:0 0 24px;text-align:center">
-                        <a href="{acceptUrl}" style="display:inline-block;background:#1c1917;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:bold">Aceptar invitación</a>
+                        <a href="{acceptUrl}" style="display:inline-block;background:#a38a3e;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:bold">Aceptar invitación</a>
                       </p>
                       <p style="margin:0;font-size:13px;line-height:1.6;color:#78716c">
                         Si el botón no funciona, copia y pega este enlace en tu navegador:<br />
-                        <a href="{acceptUrl}" style="color:#1c1917;word-break:break-all">{acceptUrl}</a>
+                        <a href="{acceptUrl}" style="color:#a38a3e;word-break:break-all">{acceptUrl}</a>
                       </p>
                     </td>
                   </tr>

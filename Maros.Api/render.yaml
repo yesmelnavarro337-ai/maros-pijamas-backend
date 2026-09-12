@@ -1,0 +1,54 @@
+services:
+  - type: web
+    name: maros-api
+    runtime: docker
+    plan: free
+    dockerfilePath: backend/Maros.Api/Dockerfile
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      # Secretos: se cargan en Render→Env > New Environment Group, NO commiteados.
+      - key: ConnectionStrings__DefaultConnection
+        sync: false
+      - key: Jwt__SecretKey
+        sync: false
+      - key: Cloudinary__CloudName
+        sync: false
+      - key: Cloudinary__ApiKey
+        sync: false
+      - key: Cloudinary__ApiSecret
+        sync: false
+      - key: Smtp__Password
+        sync: false
+      # Config pública:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: Jwt__Issuer
+        value: MarosPijamasApi
+      - key: Jwt__Audience
+        value: MarosPijamasAdmin
+      - key: Smtp__Host
+        value: smtp.gmail.com
+      - key: Smtp__Port
+        value: "587"
+      - key: Smtp__EnableSsl
+        value: "true"
+      - key: Smtp__Username
+        value: marospijamas@gmail.com
+      - key: Smtp__From
+        value: marospijamas@gmail.com
+      - key: Smtp__FromName
+        value: Maro's Pijamas
+      # CORS: reemplaza estos con los dominios REALES de tus frontends en Vercel.
+      # IMPORTANTE: NEXT_PUBLIC_API_URL (Vercel) debe ser https://maros-backend-pjvy.onrender.com SIN /api,
+      # porque los frontends ya concatenan /api/public/... y /api/... por su cuenta.
+      - key: Cors__AllowedOrigins__0
+        value: https://maros-web.vercel.app
+      - key: Cors__AllowedOrigins__1
+        value: https://maros-admin.vercel.app
+      - key: Cors__AllowedOrigins__2
+        value: http://localhost:3000
+      - key: Cors__AllowedOrigins__3
+        value: http://localhost:3001
+      - key: Invitation__AcceptUrl
+        value: https://maros-admin.vercel.app/accept-invite

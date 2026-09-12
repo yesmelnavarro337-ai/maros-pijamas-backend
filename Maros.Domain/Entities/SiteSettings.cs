@@ -12,6 +12,10 @@ public class SiteSettings : BaseEntity
     public string Language { get; set; } = string.Empty;
     public bool MaintenanceMode { get; set; }
     public string? LogoUrl { get; set; }
+    public string? FaviconUrl { get; set; }
+
+    // Apariencia — visibilidad/orden de las secciones del home (JSON)
+    public string? HomeSectionsJson { get; set; }
 
     // Redes sociales
     public string? Instagram { get; set; }

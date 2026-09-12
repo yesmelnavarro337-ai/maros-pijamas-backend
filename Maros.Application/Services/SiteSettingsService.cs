@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Maros.Application.Common;
 using Maros.Application.DTOs.Settings;
 using Maros.Application.Interfaces;
@@ -33,6 +34,10 @@ public class SiteSettingsService : ISiteSettingsService
         settings.Language = request.Language;
         settings.MaintenanceMode = request.MaintenanceMode;
         settings.LogoUrl = request.LogoUrl;
+        settings.FaviconUrl = request.FaviconUrl;
+        settings.HomeSectionsJson = request.HomeSections is null
+            ? settings.HomeSectionsJson
+            : JsonSerializer.Serialize(request.HomeSections);
 
         settings.Instagram = request.Instagram;
         settings.Facebook = request.Facebook;
@@ -97,8 +102,22 @@ public class SiteSettingsService : ISiteSettingsService
         );
     }
 
+    private static List<HomeSectionDto>? DeserializeSections(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return null;
+        try
+        {
+            return JsonSerializer.Deserialize<List<HomeSectionDto>>(json);
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+    }
+
     private static SiteSettingsResponseDto ToDto(Domain.Entities.SiteSettings s) => new(
         s.SiteName, s.Description, s.Currency, s.Timezone, s.Language, s.MaintenanceMode, s.LogoUrl,
+        s.FaviconUrl, DeserializeSections(s.HomeSectionsJson) ?? [],
         s.Instagram, s.Facebook, s.TikTok,
         s.WhatsappNumber, s.WhatsappDefaultMessage,
         s.EmailFromName, s.EmailFromAddress, s.NotifyNewQuotation,
