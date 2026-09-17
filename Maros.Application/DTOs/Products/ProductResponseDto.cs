@@ -4,7 +4,7 @@ public record ProductResponseDto(
     Guid Id,
     string Name,
     string Slug,
-    Guid CategoryId,
+    Guid? CategoryId,
     string CategoryName,
     string Description,
     decimal BasePrice,

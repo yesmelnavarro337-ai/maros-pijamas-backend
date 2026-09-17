@@ -4,7 +4,7 @@ namespace Maros.Application.DTOs.Products;
 
 public record ProductUpdateDto(
     [Required, MaxLength(200)] string Name,
-    [Required] Guid CategoryId,
+    Guid? CategoryId,
     [Required] string Description,
     [Range(0.01, double.MaxValue)] decimal BasePrice,
     [Required] string Status,

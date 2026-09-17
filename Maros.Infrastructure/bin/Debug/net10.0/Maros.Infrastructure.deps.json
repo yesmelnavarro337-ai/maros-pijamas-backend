@@ -9,6 +9,7 @@
       "Maros.Infrastructure/1.0.0": {
         "dependencies": {
           "CloudinaryDotNet": "1.29.2",
+          "MailKit": "4.18.0",
           "Maros.Application": "1.0.0",
           "Maros.Domain": "1.0.0",
           "Microsoft.Extensions.Configuration.Abstractions": "10.0.10",
@@ -16,10 +17,19 @@
           "Microsoft.Extensions.Identity.Core": "10.0.10",
           "Microsoft.Extensions.Logging.Abstractions": "10.0.10",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "10.0.3",
+          "Resend": "0.18.0",
           "System.IdentityModel.Tokens.Jwt": "8.22.0"
         },
         "runtime": {
           "Maros.Infrastructure.dll": {}
+        }
+      },
+      "BouncyCastle.Cryptography/2.7.0": {
+        "runtime": {
+          "lib/net6.0/BouncyCastle.Cryptography.dll": {
+            "assemblyVersion": "2.0.0.0",
+            "fileVersion": "2.7.0.16391"
+          }
         }
       },
       "CloudinaryDotNet/1.29.2": {
@@ -30,6 +40,17 @@
           "lib/netstandard2.0/CloudinaryDotNet.dll": {
             "assemblyVersion": "1.29.2.0",
             "fileVersion": "1.29.2.0"
+          }
+        }
+      },
+      "MailKit/4.18.0": {
+        "dependencies": {
+          "MimeKit": "4.18.0"
+        },
+        "runtime": {
+          "lib/net10.0/MailKit.dll": {
+            "assemblyVersion": "4.18.0.0",
+            "fileVersion": "4.18.0.0"
           }
         }
       },
@@ -49,6 +70,17 @@
           "lib/net10.0/Microsoft.AspNetCore.Cryptography.KeyDerivation.dll": {
             "assemblyVersion": "10.0.0.0",
             "fileVersion": "10.0.1026.32716"
+          }
+        }
+      },
+      "Microsoft.AspNetCore.WebUtilities/8.0.20": {
+        "dependencies": {
+          "Microsoft.Net.Http.Headers": "8.0.20"
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.AspNetCore.WebUtilities.dll": {
+            "assemblyVersion": "8.0.0.0",
+            "fileVersion": "8.0.2025.42002"
           }
         }
       },
@@ -200,6 +232,22 @@
           }
         }
       },
+      "Microsoft.Extensions.Http/8.0.0": {
+        "dependencies": {
+          "Microsoft.Extensions.Configuration.Abstractions": "10.0.10",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.10",
+          "Microsoft.Extensions.Diagnostics": "10.0.10",
+          "Microsoft.Extensions.Logging": "10.0.10",
+          "Microsoft.Extensions.Logging.Abstractions": "10.0.10",
+          "Microsoft.Extensions.Options": "10.0.10"
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.Extensions.Http.dll": {
+            "assemblyVersion": "8.0.0.0",
+            "fileVersion": "8.0.23.53103"
+          }
+        }
+      },
       "Microsoft.Extensions.Identity.Core/10.0.10": {
         "dependencies": {
           "Microsoft.AspNetCore.Cryptography.KeyDerivation": "10.0.10",
@@ -316,6 +364,29 @@
           }
         }
       },
+      "Microsoft.Net.Http.Headers/8.0.20": {
+        "dependencies": {
+          "Microsoft.Extensions.Primitives": "10.0.10"
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.Net.Http.Headers.dll": {
+            "assemblyVersion": "8.0.0.0",
+            "fileVersion": "8.0.2025.42002"
+          }
+        }
+      },
+      "MimeKit/4.18.0": {
+        "dependencies": {
+          "BouncyCastle.Cryptography": "2.7.0",
+          "System.Security.Cryptography.Pkcs": "10.0.0"
+        },
+        "runtime": {
+          "lib/net10.0/MimeKit.dll": {
+            "assemblyVersion": "4.18.0.0",
+            "fileVersion": "4.18.0.0"
+          }
+        }
+      },
       "Newtonsoft.Json/13.0.3": {
         "runtime": {
           "lib/net6.0/Newtonsoft.Json.dll": {
@@ -348,6 +419,19 @@
           }
         }
       },
+      "Resend/0.18.0": {
+        "dependencies": {
+          "Microsoft.AspNetCore.WebUtilities": "8.0.20",
+          "Microsoft.Extensions.Http": "8.0.0",
+          "Microsoft.Extensions.Options": "10.0.10"
+        },
+        "runtime": {
+          "lib/net8.0/Resend.dll": {
+            "assemblyVersion": "0.18.0.0",
+            "fileVersion": "0.18.0.0"
+          }
+        }
+      },
       "System.IdentityModel.Tokens.Jwt/8.22.0": {
         "dependencies": {
           "Microsoft.IdentityModel.JsonWebTokens": "8.22.0",
@@ -357,6 +441,22 @@
           "lib/net10.0/System.IdentityModel.Tokens.Jwt.dll": {
             "assemblyVersion": "8.22.0.0",
             "fileVersion": "8.22.0.26208"
+          }
+        }
+      },
+      "System.Security.Cryptography.Pkcs/10.0.0": {
+        "runtime": {
+          "lib/net10.0/System.Security.Cryptography.Pkcs.dll": {
+            "assemblyVersion": "10.0.0.0",
+            "fileVersion": "10.0.25.52411"
+          }
+        },
+        "runtimeTargets": {
+          "runtimes/win/lib/net10.0/System.Security.Cryptography.Pkcs.dll": {
+            "rid": "win",
+            "assetType": "runtime",
+            "assemblyVersion": "10.0.0.0",
+            "fileVersion": "10.0.25.52411"
           }
         }
       },
@@ -390,12 +490,26 @@
       "serviceable": false,
       "sha512": ""
     },
+    "BouncyCastle.Cryptography/2.7.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-U+12df8UEWHgBi04YVf/Lgi2dy3SItlIYvHjjEVa/BngCQIzDCDRBk50DDByCfDvSbe5pRNFr3b7UrVK2kMcLw==",
+      "path": "bouncycastle.cryptography/2.7.0",
+      "hashPath": "bouncycastle.cryptography.2.7.0.nupkg.sha512"
+    },
     "CloudinaryDotNet/1.29.2": {
       "type": "package",
       "serviceable": true,
       "sha512": "sha512-4vrrx4N960MShjpKlsiRdl8eIHeT2UBn2X69d7b7C34M84lyoZT/ig4CkVCCb8fx5X95oaLE3wNv4tGJHHGnSA==",
       "path": "cloudinarydotnet/1.29.2",
       "hashPath": "cloudinarydotnet.1.29.2.nupkg.sha512"
+    },
+    "MailKit/4.18.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-Sk+n5f4uVKiQKECOCPcFcYtYpIt9rcli7dDboSkWM2TBbTYE7EpfudL+e5a6TFp9eMHOzNYOydzZh0b+zFGK4A==",
+      "path": "mailkit/4.18.0",
+      "hashPath": "mailkit.4.18.0.nupkg.sha512"
     },
     "Microsoft.AspNetCore.Cryptography.Internal/10.0.10": {
       "type": "package",
@@ -410,6 +524,13 @@
       "sha512": "sha512-w6P461MvhJrttEcyGfN00tf8rdwQJFK+s0pebR44jiTzAa+PUZ804xzbGZQpR6klSFd212M4DIIROSaW0Acifg==",
       "path": "microsoft.aspnetcore.cryptography.keyderivation/10.0.10",
       "hashPath": "microsoft.aspnetcore.cryptography.keyderivation.10.0.10.nupkg.sha512"
+    },
+    "Microsoft.AspNetCore.WebUtilities/8.0.20": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-KuQNopMvYW5ogv7ioAj19x/Wx+Kc6irjmSXuJQBOtNfXE7VGruTnYoFvi2GuxSCrNoJAhotlp5rg76MeOA4tXQ==",
+      "path": "microsoft.aspnetcore.webutilities/8.0.20",
+      "hashPath": "microsoft.aspnetcore.webutilities.8.0.20.nupkg.sha512"
     },
     "Microsoft.Bcl.Cryptography/10.0.2": {
       "type": "package",
@@ -502,6 +623,13 @@
       "path": "microsoft.extensions.diagnostics.abstractions/10.0.10",
       "hashPath": "microsoft.extensions.diagnostics.abstractions.10.0.10.nupkg.sha512"
     },
+    "Microsoft.Extensions.Http/8.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-cWz4caHwvx0emoYe7NkHPxII/KkTI8R/LC9qdqJqnKv2poTJ4e2qqPGQqvRoQ5kaSA4FU5IV3qFAuLuOhoqULQ==",
+      "path": "microsoft.extensions.http/8.0.0",
+      "hashPath": "microsoft.extensions.http.8.0.0.nupkg.sha512"
+    },
     "Microsoft.Extensions.Identity.Core/10.0.10": {
       "type": "package",
       "serviceable": true,
@@ -572,6 +700,20 @@
       "path": "microsoft.identitymodel.tokens/8.22.0",
       "hashPath": "microsoft.identitymodel.tokens.8.22.0.nupkg.sha512"
     },
+    "Microsoft.Net.Http.Headers/8.0.20": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-S12GAe3JAvO22Rx8lNE932WzwtzC0zq/2lGs6bgAqova33B+ZrQSKP6pZ4GOqN2+qXMNQOcoPsO4HDQO48KyTg==",
+      "path": "microsoft.net.http.headers/8.0.20",
+      "hashPath": "microsoft.net.http.headers.8.0.20.nupkg.sha512"
+    },
+    "MimeKit/4.18.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-foq2guy0YL0l0WuHrW4CuYicooXDpXlTOG1kuzlw9VcWfZpaf6zu3nX2kV3n6VKTrMy24vQJgE2TepszntVd3A==",
+      "path": "mimekit/4.18.0",
+      "hashPath": "mimekit.4.18.0.nupkg.sha512"
+    },
     "Newtonsoft.Json/13.0.3": {
       "type": "package",
       "serviceable": true,
@@ -593,12 +735,26 @@
       "path": "npgsql.entityframeworkcore.postgresql/10.0.3",
       "hashPath": "npgsql.entityframeworkcore.postgresql.10.0.3.nupkg.sha512"
     },
+    "Resend/0.18.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-udD1RbVT6ULMy7SgruWTHdNGVCI0K/8I+h/KNNEt98GCGc58tf7LStuc7ln4PfLC4mvinZ+z11hkOzii9O8CIw==",
+      "path": "resend/0.18.0",
+      "hashPath": "resend.0.18.0.nupkg.sha512"
+    },
     "System.IdentityModel.Tokens.Jwt/8.22.0": {
       "type": "package",
       "serviceable": true,
       "sha512": "sha512-CpXGfNhLl6EgYaOC9XYsc1p7Ci9HtAy0soHJDSBNGse647al4tTq9RDr+LQsrF4Ls79Dx7VfzN34km0W4DWPow==",
       "path": "system.identitymodel.tokens.jwt/8.22.0",
       "hashPath": "system.identitymodel.tokens.jwt.8.22.0.nupkg.sha512"
+    },
+    "System.Security.Cryptography.Pkcs/10.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-UPWqLSygJlFerRi9XNIuM0a1VC8gHUIufyP24xQ0sc+XimqUAEcjpOz9DhKpyDjH+5B/wO3RpC0KpkEeDj/ddg==",
+      "path": "system.security.cryptography.pkcs/10.0.0",
+      "hashPath": "system.security.cryptography.pkcs.10.0.0.nupkg.sha512"
     },
     "Maros.Application/1.0.0": {
       "type": "project",

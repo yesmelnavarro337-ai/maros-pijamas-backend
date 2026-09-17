@@ -2,6 +2,19 @@
   "version": 4,
   "targets": {
     "net10.0": {
+      "BouncyCastle.Cryptography/2.7.0": {
+        "type": "package",
+        "compile": {
+          "lib/net6.0/BouncyCastle.Cryptography.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0/BouncyCastle.Cryptography.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "CloudinaryDotNet/1.29.2": {
         "type": "package",
         "dependencies": {
@@ -15,6 +28,22 @@
         "runtime": {
           "lib/netstandard2.0/CloudinaryDotNet.dll": {
             "related": ".xml"
+          }
+        }
+      },
+      "MailKit/4.18.0": {
+        "type": "package",
+        "dependencies": {
+          "MimeKit": "4.18.0"
+        },
+        "compile": {
+          "lib/net10.0/MailKit.dll": {
+            "related": ".dll.config;.pdb;.xml"
+          }
+        },
+        "runtime": {
+          "lib/net10.0/MailKit.dll": {
+            "related": ".dll.config;.pdb;.xml"
           }
         }
       },
@@ -43,6 +72,22 @@
         },
         "runtime": {
           "lib/net10.0/Microsoft.AspNetCore.Cryptography.KeyDerivation.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "Microsoft.AspNetCore.WebUtilities/8.0.20": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Net.Http.Headers": "8.0.20"
+        },
+        "compile": {
+          "lib/net8.0/Microsoft.AspNetCore.WebUtilities.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.AspNetCore.WebUtilities.dll": {
             "related": ".xml"
           }
         }
@@ -297,6 +342,30 @@
           "buildTransitive/net8.0/_._": {}
         }
       },
+      "Microsoft.Extensions.Http/8.0.0": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Extensions.Configuration.Abstractions": "8.0.0",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.0",
+          "Microsoft.Extensions.Diagnostics": "8.0.0",
+          "Microsoft.Extensions.Logging": "8.0.0",
+          "Microsoft.Extensions.Logging.Abstractions": "8.0.0",
+          "Microsoft.Extensions.Options": "8.0.0"
+        },
+        "compile": {
+          "lib/net8.0/Microsoft.Extensions.Http.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.Extensions.Http.dll": {
+            "related": ".xml"
+          }
+        },
+        "build": {
+          "buildTransitive/net6.0/_._": {}
+        }
+      },
       "Microsoft.Extensions.Identity.Core/10.0.10": {
         "type": "package",
         "dependencies": {
@@ -478,6 +547,39 @@
           }
         }
       },
+      "Microsoft.Net.Http.Headers/8.0.20": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Extensions.Primitives": "8.0.0"
+        },
+        "compile": {
+          "lib/net8.0/Microsoft.Net.Http.Headers.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.Net.Http.Headers.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "MimeKit/4.18.0": {
+        "type": "package",
+        "dependencies": {
+          "BouncyCastle.Cryptography": "2.7.0",
+          "System.Security.Cryptography.Pkcs": "10.0.0"
+        },
+        "compile": {
+          "lib/net10.0/MimeKit.dll": {
+            "related": ".dll.config;.pdb;.xml"
+          }
+        },
+        "runtime": {
+          "lib/net10.0/MimeKit.dll": {
+            "related": ".dll.config;.pdb;.xml"
+          }
+        }
+      },
       "Newtonsoft.Json/13.0.3": {
         "type": "package",
         "compile": {
@@ -525,6 +627,24 @@
           }
         }
       },
+      "Resend/0.18.0": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.AspNetCore.WebUtilities": "8.0.20",
+          "Microsoft.Extensions.Http": "8.0.0",
+          "Microsoft.Extensions.Options": "8.0.0"
+        },
+        "compile": {
+          "lib/net8.0/Resend.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/Resend.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "System.IdentityModel.Tokens.Jwt/8.22.0": {
         "type": "package",
         "dependencies": {
@@ -539,6 +659,28 @@
         "runtime": {
           "lib/net10.0/System.IdentityModel.Tokens.Jwt.dll": {
             "related": ".xml"
+          }
+        }
+      },
+      "System.Security.Cryptography.Pkcs/10.0.0": {
+        "type": "package",
+        "compile": {
+          "lib/net10.0/System.Security.Cryptography.Pkcs.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net10.0/System.Security.Cryptography.Pkcs.dll": {
+            "related": ".xml"
+          }
+        },
+        "build": {
+          "buildTransitive/net8.0/_._": {}
+        },
+        "runtimeTargets": {
+          "runtimes/win/lib/net10.0/System.Security.Cryptography.Pkcs.dll": {
+            "assetType": "runtime",
+            "rid": "win"
           }
         }
       },
@@ -571,6 +713,26 @@
     }
   },
   "libraries": {
+    "BouncyCastle.Cryptography/2.7.0": {
+      "sha512": "U+12df8UEWHgBi04YVf/Lgi2dy3SItlIYvHjjEVa/BngCQIzDCDRBk50DDByCfDvSbe5pRNFr3b7UrVK2kMcLw==",
+      "type": "package",
+      "path": "bouncycastle.cryptography/2.7.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE.md",
+        "README.md",
+        "bouncycastle.cryptography.2.7.0.nupkg.sha512",
+        "bouncycastle.cryptography.nuspec",
+        "lib/net461/BouncyCastle.Cryptography.dll",
+        "lib/net461/BouncyCastle.Cryptography.xml",
+        "lib/net6.0/BouncyCastle.Cryptography.dll",
+        "lib/net6.0/BouncyCastle.Cryptography.xml",
+        "lib/netstandard2.0/BouncyCastle.Cryptography.dll",
+        "lib/netstandard2.0/BouncyCastle.Cryptography.xml",
+        "packageIcon.png"
+      ]
+    },
     "CloudinaryDotNet/1.29.2": {
       "sha512": "4vrrx4N960MShjpKlsiRdl8eIHeT2UBn2X69d7b7C34M84lyoZT/ig4CkVCCb8fx5X95oaLE3wNv4tGJHHGnSA==",
       "type": "package",
@@ -588,6 +750,46 @@
         "lib/netstandard1.3/CloudinaryDotNet.xml",
         "lib/netstandard2.0/CloudinaryDotNet.dll",
         "lib/netstandard2.0/CloudinaryDotNet.xml"
+      ]
+    },
+    "MailKit/4.18.0": {
+      "sha512": "Sk+n5f4uVKiQKECOCPcFcYtYpIt9rcli7dDboSkWM2TBbTYE7EpfudL+e5a6TFp9eMHOzNYOydzZh0b+zFGK4A==",
+      "type": "package",
+      "path": "mailkit/4.18.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "docs/ExchangeOAuth2.md",
+        "docs/FAQ.md",
+        "docs/GMailOAuth2.md",
+        "docs/README.md",
+        "icons/mailkit-50.png",
+        "lib/net10.0/MailKit.dll",
+        "lib/net10.0/MailKit.dll.config",
+        "lib/net10.0/MailKit.pdb",
+        "lib/net10.0/MailKit.xml",
+        "lib/net462/MailKit.dll",
+        "lib/net462/MailKit.pdb",
+        "lib/net462/MailKit.xml",
+        "lib/net47/MailKit.dll",
+        "lib/net47/MailKit.pdb",
+        "lib/net47/MailKit.xml",
+        "lib/net48/MailKit.dll",
+        "lib/net48/MailKit.pdb",
+        "lib/net48/MailKit.xml",
+        "lib/net8.0/MailKit.dll",
+        "lib/net8.0/MailKit.dll.config",
+        "lib/net8.0/MailKit.pdb",
+        "lib/net8.0/MailKit.xml",
+        "lib/netstandard2.0/MailKit.dll",
+        "lib/netstandard2.0/MailKit.pdb",
+        "lib/netstandard2.0/MailKit.xml",
+        "lib/netstandard2.1/MailKit.dll",
+        "lib/netstandard2.1/MailKit.dll.config",
+        "lib/netstandard2.1/MailKit.pdb",
+        "lib/netstandard2.1/MailKit.xml",
+        "mailkit.4.18.0.nupkg.sha512",
+        "mailkit.nuspec"
       ]
     },
     "Microsoft.AspNetCore.Cryptography.Internal/10.0.10": {
@@ -626,6 +828,21 @@
         "lib/netstandard2.0/Microsoft.AspNetCore.Cryptography.KeyDerivation.xml",
         "microsoft.aspnetcore.cryptography.keyderivation.10.0.10.nupkg.sha512",
         "microsoft.aspnetcore.cryptography.keyderivation.nuspec"
+      ]
+    },
+    "Microsoft.AspNetCore.WebUtilities/8.0.20": {
+      "sha512": "KuQNopMvYW5ogv7ioAj19x/Wx+Kc6irjmSXuJQBOtNfXE7VGruTnYoFvi2GuxSCrNoJAhotlp5rg76MeOA4tXQ==",
+      "type": "package",
+      "path": "microsoft.aspnetcore.webutilities/8.0.20",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Icon.png",
+        "THIRD-PARTY-NOTICES.TXT",
+        "lib/net8.0/Microsoft.AspNetCore.WebUtilities.dll",
+        "lib/net8.0/Microsoft.AspNetCore.WebUtilities.xml",
+        "microsoft.aspnetcore.webutilities.8.0.20.nupkg.sha512",
+        "microsoft.aspnetcore.webutilities.nuspec"
       ]
     },
     "Microsoft.Bcl.Cryptography/10.0.2": {
@@ -993,6 +1210,36 @@
         "useSharedDesignerContext.txt"
       ]
     },
+    "Microsoft.Extensions.Http/8.0.0": {
+      "sha512": "cWz4caHwvx0emoYe7NkHPxII/KkTI8R/LC9qdqJqnKv2poTJ4e2qqPGQqvRoQ5kaSA4FU5IV3qFAuLuOhoqULQ==",
+      "type": "package",
+      "path": "microsoft.extensions.http/8.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Icon.png",
+        "LICENSE.TXT",
+        "PACKAGE.md",
+        "THIRD-PARTY-NOTICES.TXT",
+        "buildTransitive/net461/Microsoft.Extensions.Http.targets",
+        "buildTransitive/net462/_._",
+        "buildTransitive/net6.0/_._",
+        "buildTransitive/netcoreapp2.0/Microsoft.Extensions.Http.targets",
+        "lib/net462/Microsoft.Extensions.Http.dll",
+        "lib/net462/Microsoft.Extensions.Http.xml",
+        "lib/net6.0/Microsoft.Extensions.Http.dll",
+        "lib/net6.0/Microsoft.Extensions.Http.xml",
+        "lib/net7.0/Microsoft.Extensions.Http.dll",
+        "lib/net7.0/Microsoft.Extensions.Http.xml",
+        "lib/net8.0/Microsoft.Extensions.Http.dll",
+        "lib/net8.0/Microsoft.Extensions.Http.xml",
+        "lib/netstandard2.0/Microsoft.Extensions.Http.dll",
+        "lib/netstandard2.0/Microsoft.Extensions.Http.xml",
+        "microsoft.extensions.http.8.0.0.nupkg.sha512",
+        "microsoft.extensions.http.nuspec",
+        "useSharedDesignerContext.txt"
+      ]
+    },
     "Microsoft.Extensions.Identity.Core/10.0.10": {
       "sha512": "ZA+9MX1D7+jm/1RF3iOOBThCps55MT1jAwLne1dryMj9cuAeOVtGS3pBegqk1Mwza+0tuVAklob+Q/EA9bHnQw==",
       "type": "package",
@@ -1323,6 +1570,59 @@
         "microsoft.identitymodel.tokens.nuspec"
       ]
     },
+    "Microsoft.Net.Http.Headers/8.0.20": {
+      "sha512": "S12GAe3JAvO22Rx8lNE932WzwtzC0zq/2lGs6bgAqova33B+ZrQSKP6pZ4GOqN2+qXMNQOcoPsO4HDQO48KyTg==",
+      "type": "package",
+      "path": "microsoft.net.http.headers/8.0.20",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Icon.png",
+        "THIRD-PARTY-NOTICES.TXT",
+        "lib/net8.0/Microsoft.Net.Http.Headers.dll",
+        "lib/net8.0/Microsoft.Net.Http.Headers.xml",
+        "microsoft.net.http.headers.8.0.20.nupkg.sha512",
+        "microsoft.net.http.headers.nuspec"
+      ]
+    },
+    "MimeKit/4.18.0": {
+      "sha512": "foq2guy0YL0l0WuHrW4CuYicooXDpXlTOG1kuzlw9VcWfZpaf6zu3nX2kV3n6VKTrMy24vQJgE2TepszntVd3A==",
+      "type": "package",
+      "path": "mimekit/4.18.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "docs/FAQ.md",
+        "docs/README.md",
+        "icons/mimekit-50.png",
+        "lib/net10.0/MimeKit.dll",
+        "lib/net10.0/MimeKit.dll.config",
+        "lib/net10.0/MimeKit.pdb",
+        "lib/net10.0/MimeKit.xml",
+        "lib/net462/MimeKit.dll",
+        "lib/net462/MimeKit.pdb",
+        "lib/net462/MimeKit.xml",
+        "lib/net47/MimeKit.dll",
+        "lib/net47/MimeKit.pdb",
+        "lib/net47/MimeKit.xml",
+        "lib/net48/MimeKit.dll",
+        "lib/net48/MimeKit.pdb",
+        "lib/net48/MimeKit.xml",
+        "lib/net8.0/MimeKit.dll",
+        "lib/net8.0/MimeKit.dll.config",
+        "lib/net8.0/MimeKit.pdb",
+        "lib/net8.0/MimeKit.xml",
+        "lib/netstandard2.0/MimeKit.dll",
+        "lib/netstandard2.0/MimeKit.pdb",
+        "lib/netstandard2.0/MimeKit.xml",
+        "lib/netstandard2.1/MimeKit.dll",
+        "lib/netstandard2.1/MimeKit.dll.config",
+        "lib/netstandard2.1/MimeKit.pdb",
+        "lib/netstandard2.1/MimeKit.xml",
+        "mimekit.4.18.0.nupkg.sha512",
+        "mimekit.nuspec"
+      ]
+    },
     "Newtonsoft.Json/13.0.3": {
       "sha512": "HrC5BXdl00IP9zeV+0Z848QWPAoCr9P3bDEZguI+gkLcBKAOxix/tLEAAHC+UvDNPv4a2d18lOReHMOagPa+zQ==",
       "type": "package",
@@ -1387,6 +1687,21 @@
         "postgresql.png"
       ]
     },
+    "Resend/0.18.0": {
+      "sha512": "udD1RbVT6ULMy7SgruWTHdNGVCI0K/8I+h/KNNEt98GCGc58tf7LStuc7ln4PfLC4mvinZ+z11hkOzii9O8CIw==",
+      "type": "package",
+      "path": "resend/0.18.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "icon.png",
+        "lib/net8.0/Resend.dll",
+        "lib/net8.0/Resend.xml",
+        "resend.0.18.0.nupkg.sha512",
+        "resend.nuspec"
+      ]
+    },
     "System.IdentityModel.Tokens.Jwt/8.22.0": {
       "sha512": "CpXGfNhLl6EgYaOC9XYsc1p7Ci9HtAy0soHJDSBNGse647al4tTq9RDr+LQsrF4Ls79Dx7VfzN34km0W4DWPow==",
       "type": "package",
@@ -1413,6 +1728,42 @@
         "system.identitymodel.tokens.jwt.nuspec"
       ]
     },
+    "System.Security.Cryptography.Pkcs/10.0.0": {
+      "sha512": "UPWqLSygJlFerRi9XNIuM0a1VC8gHUIufyP24xQ0sc+XimqUAEcjpOz9DhKpyDjH+5B/wO3RpC0KpkEeDj/ddg==",
+      "type": "package",
+      "path": "system.security.cryptography.pkcs/10.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Icon.png",
+        "THIRD-PARTY-NOTICES.TXT",
+        "buildTransitive/net461/System.Security.Cryptography.Pkcs.targets",
+        "buildTransitive/net462/_._",
+        "buildTransitive/net8.0/_._",
+        "buildTransitive/netcoreapp2.0/System.Security.Cryptography.Pkcs.targets",
+        "lib/net10.0/System.Security.Cryptography.Pkcs.dll",
+        "lib/net10.0/System.Security.Cryptography.Pkcs.xml",
+        "lib/net462/System.Security.Cryptography.Pkcs.dll",
+        "lib/net462/System.Security.Cryptography.Pkcs.xml",
+        "lib/net8.0/System.Security.Cryptography.Pkcs.dll",
+        "lib/net8.0/System.Security.Cryptography.Pkcs.xml",
+        "lib/net9.0/System.Security.Cryptography.Pkcs.dll",
+        "lib/net9.0/System.Security.Cryptography.Pkcs.xml",
+        "lib/netstandard2.0/System.Security.Cryptography.Pkcs.dll",
+        "lib/netstandard2.0/System.Security.Cryptography.Pkcs.xml",
+        "lib/netstandard2.1/System.Security.Cryptography.Pkcs.dll",
+        "lib/netstandard2.1/System.Security.Cryptography.Pkcs.xml",
+        "runtimes/win/lib/net10.0/System.Security.Cryptography.Pkcs.dll",
+        "runtimes/win/lib/net10.0/System.Security.Cryptography.Pkcs.xml",
+        "runtimes/win/lib/net8.0/System.Security.Cryptography.Pkcs.dll",
+        "runtimes/win/lib/net8.0/System.Security.Cryptography.Pkcs.xml",
+        "runtimes/win/lib/net9.0/System.Security.Cryptography.Pkcs.dll",
+        "runtimes/win/lib/net9.0/System.Security.Cryptography.Pkcs.xml",
+        "system.security.cryptography.pkcs.10.0.0.nupkg.sha512",
+        "system.security.cryptography.pkcs.nuspec",
+        "useSharedDesignerContext.txt"
+      ]
+    },
     "Maros.Application/1.0.0": {
       "type": "project",
       "path": "../Maros.Application/Maros.Application.csproj",
@@ -1427,6 +1778,7 @@
   "projectFileDependencyGroups": {
     "net10.0": [
       "CloudinaryDotNet >= 1.29.2",
+      "MailKit >= 4.18.0",
       "Maros.Application >= 1.0.0",
       "Maros.Domain >= 1.0.0",
       "Microsoft.Extensions.Configuration.Abstractions >= 10.0.10",
@@ -1434,6 +1786,7 @@
       "Microsoft.Extensions.Identity.Core >= 10.0.10",
       "Microsoft.Extensions.Logging.Abstractions >= 10.0.10",
       "Npgsql.EntityFrameworkCore.PostgreSQL >= 10.0.3",
+      "Resend >= 0.18.0",
       "System.IdentityModel.Tokens.Jwt >= 8.22.0"
     ]
   },
@@ -1501,6 +1854,10 @@
             "target": "Package",
             "version": "[1.29.2, )"
           },
+          "MailKit": {
+            "target": "Package",
+            "version": "[4.18.0, )"
+          },
           "Microsoft.Extensions.Configuration.Abstractions": {
             "target": "Package",
             "version": "[10.0.10, )"
@@ -1520,6 +1877,10 @@
           "Npgsql.EntityFrameworkCore.PostgreSQL": {
             "target": "Package",
             "version": "[10.0.3, )"
+          },
+          "Resend": {
+            "target": "Package",
+            "version": "[0.18.0, )"
           },
           "System.IdentityModel.Tokens.Jwt": {
             "target": "Package",

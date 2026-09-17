@@ -7,7 +7,7 @@ public record ProductPublicDetailDto(
     string Description,
     decimal BasePrice,
     string CategoryName,
-    Guid CategoryId,
+    Guid? CategoryId,
     List<string> Images,
     List<string> Sizes,
     List<ProductColorPublicDto> Colors,

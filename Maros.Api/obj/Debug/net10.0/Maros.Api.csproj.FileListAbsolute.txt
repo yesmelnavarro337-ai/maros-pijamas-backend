@@ -140,3 +140,7 @@ C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Des
 C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Api\obj\Debug\net10.0\Maros.Api.sourcelink.json
 C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Api\bin\Debug\net10.0\Npgsql.dll
 C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Api\bin\Debug\net10.0\Npgsql.EntityFrameworkCore.PostgreSQL.dll
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Api\bin\Debug\net10.0\Resend.dll
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Api\bin\Debug\net10.0\BouncyCastle.Cryptography.dll
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Api\bin\Debug\net10.0\MailKit.dll
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Api\bin\Debug\net10.0\MimeKit.dll

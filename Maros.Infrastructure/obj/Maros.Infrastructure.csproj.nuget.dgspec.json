@@ -766,6 +766,10 @@
               "target": "Package",
               "version": "[1.29.2, )"
             },
+            "MailKit": {
+              "target": "Package",
+              "version": "[4.18.0, )"
+            },
             "Microsoft.Extensions.Configuration.Abstractions": {
               "target": "Package",
               "version": "[10.0.10, )"
@@ -785,6 +789,10 @@
             "Npgsql.EntityFrameworkCore.PostgreSQL": {
               "target": "Package",
               "version": "[10.0.3, )"
+            },
+            "Resend": {
+              "target": "Package",
+              "version": "[0.18.0, )"
             },
             "System.IdentityModel.Tokens.Jwt": {
               "target": "Package",

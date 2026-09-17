@@ -60,6 +60,6 @@ public class CollectionsController : ControllerBase
     public async Task<IActionResult> Remove(Guid id)
     {
         await _collectionService.RemoveAsync(id);
-        return NoContent();
+        return Ok(new { success = true, message = "Colección eliminada correctamente." });
     }
 }

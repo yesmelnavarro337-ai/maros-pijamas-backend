@@ -1,125 +1,94 @@
-using MailKit.Net.Smtp;
-using MailKit.Security;
 using Maros.Application.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using MimeKit;
+using Resend;
 
 namespace Maros.Infrastructure.ExternalServices;
 
 /// <summary>
-/// Implementación de <see cref="IEmailService"/> usando MailKit + Gmail SMTP.
+/// Implementación de <see cref="IEmailService"/> usando el SDK oficial de Resend.
+/// Requiere la sección "Resend:ApiKey" configurada en appsettings / variables de entorno.
 /// </summary>
-public sealed class SmtpEmailService : IEmailService
+public sealed class ResendEmailService : IEmailService
 {
-    private const int DefaultPort = 587;
-    private const string DefaultFrom = "marospijamas@gmail.com";
-    private const string DefaultFromName = "Maro's Pijamas";
-    private const string GmailSmtpServer = "smtp.gmail.com";
+    private const string DefaultFromEmail = "onboarding@resend.dev";
+    private const string DefaultFromName  = "Maro's Pijamas";
 
-    private readonly IConfiguration _configuration;
-    private readonly ILogger<SmtpEmailService> _logger;
+    private readonly IResend  _resend;
+    private readonly string   _fromEmail;
+    private readonly string   _fromName;
+    private readonly ILogger<ResendEmailService> _logger;
 
-    public SmtpEmailService(IConfiguration configuration, ILogger<SmtpEmailService> logger)
+    public ResendEmailService(
+        IResend resend,
+        IConfiguration configuration,
+        ILogger<ResendEmailService> logger)
     {
-        _configuration = configuration;
-        _logger = logger;
+        _resend    = resend;
+        _logger    = logger;
+
+        var section = configuration.GetSection("Resend");
+        _fromEmail  = section["FromEmail"] ?? DefaultFromEmail;
+        _fromName   = section["FromName"]  ?? DefaultFromName;
     }
 
     /// <inheritdoc/>
     public async Task SendInvitationAsync(string to, string name, string acceptUrl)
     {
-        var server = _configuration["Smtp:Server"];
-        if (string.IsNullOrWhiteSpace(server))
-        {
-            _logger.LogWarning(
-                "SMTP no configurado (Smtp:Server vacío). No se envió correo a {To}. Enlace de aceptación: {AcceptUrl}",
-                to, acceptUrl);
-            return;
-        }
-
-        var message = BuildMessage(
-            to,
-            subject: "Invitación a Maro's Pijamas",
-            bodyHtml: BuildInvitationHtml(name, acceptUrl));
-
         _logger.LogInformation("Enviando correo de invitación a {To}", to);
-        await SendAsync(message);
-        _logger.LogInformation("Correo de invitación enviado a {To}", to);
+
+        var message = new EmailMessage
+        {
+            From    = $"{_fromName} <{_fromEmail}>",
+            Subject = "Invitación a Maro's Pijamas",
+            HtmlBody = BuildInvitationHtml(name, acceptUrl),
+        };
+        message.To.Add(to);
+
+        try
+        {
+            await _resend.EmailSendAsync(message);
+            _logger.LogInformation("Correo de invitación enviado a {To}", to);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Error al enviar correo de invitación a {To}. Enlace de aceptación: {AcceptUrl}",
+                to, acceptUrl);
+            // No relanzamos: la invitación ya quedó persistida como Pendiente.
+        }
     }
 
     /// <inheritdoc/>
     public async Task SendEmailChangeCodeAsync(string to, string name, string code, bool isNewEmail)
     {
-        var server = _configuration["Smtp:Server"];
-        if (string.IsNullOrWhiteSpace(server))
-        {
-            _logger.LogWarning(
-                "SMTP no configurado (Smtp:Server vacío). Código {Code} no enviado a {To} (isNewEmail={IsNewEmail})",
-                code, to, isNewEmail);
-            return;
-        }
+        _logger.LogInformation("Enviando código de verificación a {To} (isNewEmail={IsNewEmail})", to, isNewEmail);
 
         var subject = isNewEmail
             ? "Código de verificación de nuevo correo — Maro's Pijamas"
             : "Código de seguridad para cambio de correo — Maro's Pijamas";
 
-        var message = BuildMessage(to, subject, BuildCodeHtml(name, code, isNewEmail));
-
-        _logger.LogInformation("Enviando código de verificación a {To} (isNewEmail={IsNewEmail})", to, isNewEmail);
-        await SendAsync(message);
-        _logger.LogInformation("Código {Code} enviado a {To}", code, to);
-    }
-
-    // ──────────────────────────────────────────────────────────────────
-    // Helpers privados con MailKit / MimeKit
-    // ──────────────────────────────────────────────────────────────────
-
-    private MimeMessage BuildMessage(string to, string subject, string bodyHtml)
-    {
-        var fromEmail = Resolve(_configuration["Smtp:SenderEmail"], DefaultFrom);
-        var fromName = Resolve(_configuration["Smtp:SenderName"], DefaultFromName);
-
-        var message = new MimeMessage();
-        message.From.Add(new MailboxAddress(fromName, fromEmail));
-        message.To.Add(MailboxAddress.Parse(to));
-        message.Subject = subject;
-
-        var bodyBuilder = new BodyBuilder
+        var message = new EmailMessage
         {
-            HtmlBody = bodyHtml
+            From     = $"{_fromName} <{_fromEmail}>",
+            Subject  = subject,
+            HtmlBody = BuildCodeHtml(name, code, isNewEmail),
         };
-        message.Body = bodyBuilder.ToMessageBody();
+        message.To.Add(to);
 
-        return message;
-    }
-
-    private async Task SendAsync(MimeMessage message)
-    {
-        var host = Resolve(_configuration["Smtp:Server"], GmailSmtpServer);
-        var portStr = _configuration["Smtp:Port"];
-        var port = int.TryParse(portStr, out var p) && p > 0 ? p : DefaultPort;
-
-        var username = Resolve(_configuration["Smtp:Username"], Resolve(_configuration["Smtp:SenderEmail"], DefaultFrom));
-        var rawPassword = _configuration["Smtp:Password"] ?? string.Empty;
-        var password = rawPassword.Replace(" ", "").Trim();
-
-        using var client = new SmtpClient();
-
-        // Conexión segura con STARTTLS para el puerto 587
-        await client.ConnectAsync(host, port, SecureSocketOptions.StartTls);
-
-        if (!string.IsNullOrWhiteSpace(username) && !string.IsNullOrWhiteSpace(password))
+        try
         {
-            await client.AuthenticateAsync(username, password);
+            await _resend.EmailSendAsync(message);
+            _logger.LogInformation("Código {Code} enviado a {To}", code, to);
         }
-
-        await client.SendAsync(message);
-        await client.DisconnectAsync(true);
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Error al enviar código {Code} a {To} (isNewEmail={IsNewEmail})",
+                code, to, isNewEmail);
+            throw; // El cambio de correo sí debe fallar si el envío falla.
+        }
     }
-
-    private static string Resolve(string? value, string fallback) =>
-        string.IsNullOrWhiteSpace(value) ? fallback : value;
 
     // ──────────────────────────────────────────────────────────────────
     // HTML Builders

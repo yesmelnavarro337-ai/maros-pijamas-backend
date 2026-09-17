@@ -125,7 +125,7 @@ public class ProductService : IProductService
     {
         await ValidateCategoryAsync(request.CategoryId);
         ValidateStatus(request.Status, out var status);
-        await ValidateVariantSkusAsync(request.Variants, excludeProductId: null);
+        await ProcessAndValidateVariantSkusAsync(request.Variants, excludeProductId: null);
 
         var slug = SlugGenerator.Generate(request.Name);
         if (await _productRepository.SlugExistsAsync(slug))
@@ -168,7 +168,7 @@ public class ProductService : IProductService
 
         await ValidateCategoryAsync(request.CategoryId);
         ValidateStatus(request.Status, out var status);
-        await ValidateVariantSkusAsync(request.Variants, excludeProductId: id);
+        await ProcessAndValidateVariantSkusAsync(request.Variants, excludeProductId: id);
 
         var slug = SlugGenerator.Generate(request.Name);
         if (await _productRepository.SlugExistsAsync(slug, excludeId: id))
@@ -251,11 +251,14 @@ public class ProductService : IProductService
         return order(query);
     }
 
-    private async Task ValidateCategoryAsync(Guid categoryId)
+    private async Task ValidateCategoryAsync(Guid? categoryId)
     {
-        var category = await _categoryRepository.GetByIdAsync(categoryId);
-        if (category is null)
-            throw new AppException("La categoría seleccionada no existe.", 400);
+        if (categoryId.HasValue && categoryId.Value != Guid.Empty)
+        {
+            var category = await _categoryRepository.GetByIdAsync(categoryId.Value);
+            if (category is null)
+                throw new AppException("La categoría seleccionada no existe.", 400);
+        }
     }
 
     private static void ValidateStatus(string statusInput, out ProductStatus status)
@@ -264,24 +267,58 @@ public class ProductService : IProductService
             throw new AppException("Estado de producto inválido.", 400);
     }
 
-    private async Task ValidateVariantSkusAsync(List<ProductVariantInputDto> variants, Guid? excludeProductId)
+    private async Task ProcessAndValidateVariantSkusAsync(List<ProductVariantInputDto> variants, Guid? excludeProductId)
     {
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var variant in variants)
+        for (int i = 0; i < variants.Count; i++)
         {
-            if (!seen.Add(variant.Sku))
-                throw new AppException($"El SKU '{variant.Sku}' está repetido dentro del mismo producto.", 400);
+            var variant = variants[i];
+            string sku = variant.Sku;
 
-            if (await _productRepository.SkuExistsAsync(variant.Sku))
+            if (string.IsNullOrWhiteSpace(sku))
             {
-                var belongsToSameProduct = excludeProductId.HasValue &&
+                sku = await GenerateUniqueSkuAsync(variant.Size, variant.ColorName);
+                variants[i] = variant with { Sku = sku };
+            }
+            else
+            {
+                sku = sku.Trim();
+                if (sku != variant.Sku)
+                {
+                    variants[i] = variant with { Sku = sku };
+                }
+            }
+
+            if (!seen.Add(sku))
+                throw new AppException($"El SKU '{sku}' está repetido dentro del mismo producto. Por favor ingresa o genera uno distinto.", 400);
+
+            if (await _productRepository.SkuExistsAsync(sku))
+            {
+                var belongsToSameProduct = excludeProductId.HasValue && excludeProductId.Value != Guid.Empty &&
                     (await _productRepository.GetByIdAsync(excludeProductId.Value))?
-                        .Variants.Any(v => v.Sku.Equals(variant.Sku, StringComparison.OrdinalIgnoreCase)) == true;
+                        .Variants.Any(v => v.Sku.Equals(sku, StringComparison.OrdinalIgnoreCase)) == true;
 
                 if (!belongsToSameProduct)
-                    throw new AppException($"El SKU '{variant.Sku}' ya está en uso por otro producto.", 409);
+                    throw new AppException($"El SKU '{sku}' ya está en uso. Por favor ingresa o genera uno distinto.", 409);
             }
         }
+    }
+
+    private async Task<string> GenerateUniqueSkuAsync(string size, string colorName)
+    {
+        var sizeCode = !string.IsNullOrWhiteSpace(size) ? size.Trim().ToUpperInvariant() : "DEF";
+        var colorCode = !string.IsNullOrWhiteSpace(colorName) && colorName.Trim().Length >= 3
+            ? colorName.Trim()[..3].ToUpperInvariant()
+            : (!string.IsNullOrWhiteSpace(colorName) ? colorName.Trim().ToUpperInvariant() : "VAR");
+
+        string sku;
+        do
+        {
+            var randomSuffix = Random.Shared.Next(1000, 9999);
+            sku = $"MP-{sizeCode}-{colorCode}-{randomSuffix}";
+        } while (await _productRepository.SkuExistsAsync(sku));
+
+        return sku;
     }
 
     private static void ApplyImages(Product product, List<string> urls)
