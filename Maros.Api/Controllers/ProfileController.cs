@@ -299,7 +299,7 @@ public class ProfileController : ControllerBase
             user.Role.ToString(),
             user.Status.ToString(),
             user.CreatedAt,
-            string.IsNullOrEmpty(user.Phone) ? "+57 300 123 4567" : user.Phone,
+            string.IsNullOrEmpty(user.Phone) ? "+57 301 316 9974" : user.Phone,
             user.AvatarUrl,
             user.EmailNotificationsEnabled,
             user.InAppNotificationsEnabled
