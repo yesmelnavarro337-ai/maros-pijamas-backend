@@ -21,7 +21,6 @@ public class CloudinaryImageStorageService : IImageStorageService
 
         var account = new Account(cloudName, apiKey, apiSecret);
         _cloudinary = new Cloudinary(account);
-        _cloudinary.Api.UseSecureApi = true;
     }
 
     private static string GetConfigValue(IConfiguration config, string subKey, string envKey)
