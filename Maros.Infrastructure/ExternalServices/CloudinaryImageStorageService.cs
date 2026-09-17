@@ -12,15 +12,23 @@ public class CloudinaryImageStorageService : IImageStorageService
 
     public CloudinaryImageStorageService(IConfiguration configuration)
     {
-        var cloudName = configuration["Cloudinary:CloudName"];
-        var apiKey = configuration["Cloudinary:ApiKey"];
-        var apiSecret = configuration["Cloudinary:ApiSecret"];
+        var cloudName = GetConfigValue(configuration, "CloudName", "CLOUDINARY_CLOUD_NAME");
+        var apiKey = GetConfigValue(configuration, "ApiKey", "CLOUDINARY_API_KEY");
+        var apiSecret = GetConfigValue(configuration, "ApiSecret", "CLOUDINARY_API_SECRET");
 
         if (string.IsNullOrWhiteSpace(cloudName) || string.IsNullOrWhiteSpace(apiKey) || string.IsNullOrWhiteSpace(apiSecret))
-            throw new InvalidOperationException("Faltan credenciales de Cloudinary en la configuración.");
+            throw new InvalidOperationException("Faltan credenciales de Cloudinary en la configuración (Cloudinary:CloudName, Cloudinary:ApiKey, Cloudinary:ApiSecret).");
 
         var account = new Account(cloudName, apiKey, apiSecret);
         _cloudinary = new Cloudinary(account);
+        _cloudinary.Api.UseSecureApi = true;
+    }
+
+    private static string GetConfigValue(IConfiguration config, string subKey, string envKey)
+    {
+        var raw = config[$"Cloudinary:{subKey}"] ?? config[envKey] ?? config[subKey];
+        if (string.IsNullOrWhiteSpace(raw)) return string.Empty;
+        return raw.Trim().Trim('"', '\'');
     }
 
     public async Task<ImageUploadResultDto> UploadAsync(Stream fileStream, string fileName, string folder)
