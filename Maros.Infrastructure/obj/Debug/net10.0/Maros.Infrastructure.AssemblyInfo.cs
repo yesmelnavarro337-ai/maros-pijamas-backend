@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Maros.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3f958c84b21e8e5aefc51f291c4b5c3afd8951fa")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+726fce4b48bb070f34d08181bcd9742fc71cb697")]
 [assembly: System.Reflection.AssemblyProductAttribute("Maros.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Maros.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

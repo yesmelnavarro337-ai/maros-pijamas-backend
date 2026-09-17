@@ -29,6 +29,7 @@ public static class DependencyInjection
         services.AddScoped<IHomeService, HomeService>();
         services.AddScoped<IContactMessageService, ContactMessageService>();
         services.AddScoped<IInvitationService, InvitationService>();
+        services.AddScoped<IDashboardService, DashboardService>();
         return services;
     }
 }

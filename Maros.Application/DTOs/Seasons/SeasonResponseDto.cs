@@ -16,5 +16,8 @@ public record SeasonResponseDto(
     SeasonColorsDto Colors,
     string CtaText,
     string CtaLink,
-    List<Guid> FeaturedProductIds
+    List<Guid> FeaturedProductIds,
+    bool IsActive = false,
+    string? CoverImageUrl = null,
+    int ProductsCount = 0
 );

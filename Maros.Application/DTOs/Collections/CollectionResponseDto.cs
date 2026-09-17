@@ -7,5 +7,9 @@ public record CollectionResponseDto(
     string? CoverImageUrl,
     string AccentHex,
     bool IsDefault,
-    List<Guid> ProductIds
+    List<Guid> ProductIds,
+    string? SeasonName = null,
+    bool IsActive = true,
+    int ProductsCount = 0,
+    DateTime? UpdatedAt = null
 );

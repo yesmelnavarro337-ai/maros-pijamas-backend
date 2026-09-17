@@ -225,6 +225,9 @@ public class SeasonService : ISeasonService
         new SeasonColorsDto(s.ColorPrimary, s.ColorAccent, s.ColorBackground),
         s.CtaText,
         s.CtaLink,
-        s.FeaturedProducts.Select(fp => fp.ProductId).ToList()
+        s.FeaturedProducts != null ? s.FeaturedProducts.Select(fp => fp.ProductId).ToList() : new List<Guid>(),
+        s.Status == Domain.Enums.SeasonStatus.Activa,
+        s.BannerImageUrl ?? s.HeroImageUrl,
+        s.FeaturedProducts != null ? s.FeaturedProducts.Count : 0
     );
 }

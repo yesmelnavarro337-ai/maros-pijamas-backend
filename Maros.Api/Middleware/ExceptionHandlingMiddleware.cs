@@ -41,10 +41,16 @@ public class ExceptionHandlingMiddleware
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Excepción no controlada procesando {Path}", context.Request.Path);
+            _logger.LogError(ex, "Excepción no controlada procesando {Path}: {Message}", context.Request.Path, ex.Message);
+            var errors = new Dictionary<string, string[]>
+            {
+                ["exception"] = new[] { ex.GetType().Name, ex.Message, ex.StackTrace ?? string.Empty },
+                ["innerException"] = ex.InnerException != null ? new[] { ex.InnerException.Message } : Array.Empty<string>()
+            };
             await WriteResponseAsync(context, new ApiErrorResponse(
                 (int)HttpStatusCode.InternalServerError,
-                "Ocurrió un error inesperado. Intenta nuevamente más tarde."
+                $"Ocurrió un error inesperado: {ex.Message}",
+                errors
             ));
         }
     }

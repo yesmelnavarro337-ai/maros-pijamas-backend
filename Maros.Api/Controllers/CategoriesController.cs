@@ -24,6 +24,13 @@ public class CategoriesController : ControllerBase
         return Ok(categories);
     }
 
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetById(Guid id)
+    {
+        var category = await _categoryService.GetByIdAsync(id);
+        return Ok(category);
+    }
+
     [HttpPost]
     [Authorize(Policy = "RequireEditorOrAdmin")]
     public async Task<IActionResult> Create([FromBody] CategoryCreateDto request)

@@ -40,10 +40,10 @@ public class QuotationService : IQuotationService
 
         var paged = await _paginationService.PaginateAsync(quotations, query.PageNumber, query.PageSize);
         return new PagedResult<QuotationResponseDto>(
-    paged.Items.Select(ToDto).ToList(),
-    paged.PageNumber,
-    paged.PageSize,
-    paged.TotalCount);
+            paged.Items.Select(ToDto).ToList(),
+            paged.PageNumber,
+            paged.PageSize,
+            paged.TotalCount);
     }
 
     public async Task<QuotationResponseDto> GetByIdAsync(Guid id)
@@ -120,22 +120,35 @@ public class QuotationService : IQuotationService
         return ToDto(quotation);
     }
 
-private static QuotationResponseDto ToDto(Quotation q) => new(
-        q.Id, q.CustomerId, q.Customer?.Name ?? string.Empty, q.Customer?.Phone ?? string.Empty,
+    private static QuotationResponseDto ToDto(Quotation q) => new(
+        q.Id,
+        q.CustomerId,
+        q.Customer?.Name ?? string.Empty,
+        q.Customer?.Phone ?? string.Empty,
         q.Customer?.City ?? string.Empty,
-        q.Status.ToString(), q.Notes,
+        q.Status.ToString(),
+        q.Notes,
         q.Items.Select(i => new QuotationItemResponseDto(
-            i.Id, i.ProductId, i.Product?.Name ?? "Producto eliminado",
-            i.Product?.Images.FirstOrDefault()?.Url,
-            i.Size, i.Quantity,
+            i.Id,
+            i.ProductId,
+            i.Product?.Name ?? "Producto eliminado",
+            i.Product != null && i.Product.Images.Any()
+                ? i.Product.Images.OrderBy(img => img.Order).FirstOrDefault()?.Url ?? i.Product.Images.First().Url
+                : "/placeholder.png",
+            i.Size,
+            i.Quantity,
             i.SelectedOptions.Select(o => new QuotationItemOptionDto(
-                o.CustomizationOption.Id, o.CustomizationOption.CatalogType.ToString(), o.CustomizationOption.Name
+                o.CustomizationOption.Id,
+                o.CustomizationOption.CatalogType.ToString(),
+                o.CustomizationOption.Name
             )).ToList(),
             i.EmbroideryText,
             (i.Product?.BasePrice ?? 0)
                 + i.SelectedOptions.Sum(o => o.CustomizationOption.PriceModifier ?? 0)
         )).ToList(),
         q.ReferenceImages.Select(r => r.Url).ToList(),
-        q.CreatedAt
+        q.CreatedAt,
+        q.Customer?.Email,
+        q.UpdatedAt ?? q.CreatedAt
     );
 }

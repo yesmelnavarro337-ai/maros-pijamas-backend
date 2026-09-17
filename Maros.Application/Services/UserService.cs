@@ -33,10 +33,15 @@ public class UserService : IUserService
         _invitationOptions = invitationOptions;
     }
 
-    public async Task<List<UserResponseDto>> GetAllAsync()
+    public async Task<UserListResponseDto> GetAllAsync()
     {
         var users = await _userRepository.GetAllAsync();
-        return users.Select(ToDto).ToList();
+        var dtos = users.Select(ToDto).ToList();
+        var total = dtos.Count;
+        var active = dtos.Count(u => string.Equals(u.Status, "Activo", StringComparison.OrdinalIgnoreCase));
+        var pending = dtos.Count(u => string.Equals(u.Status, "Pendiente", StringComparison.OrdinalIgnoreCase));
+
+        return new UserListResponseDto(dtos, total, active, pending);
     }
 
     public async Task<UserResponseDto> InviteAsync(InviteUserRequestDto request)

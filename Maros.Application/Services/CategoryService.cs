@@ -17,8 +17,15 @@ public class CategoryService : ICategoryService
 
     public async Task<List<CategoryResponseDto>> GetAllAsync()
     {
-        var categories = await _categoryRepository.GetAllAsync();
-        return categories.Select(ToDto).ToList();
+        var results = await _categoryRepository.GetAllWithCountAsync();
+        return results.Select(r => ToDto(r.Category, r.ProductsCount)).ToList();
+    }
+
+    public async Task<CategoryResponseDto> GetByIdAsync(Guid id)
+    {
+        var result = await _categoryRepository.GetByIdWithCountAsync(id)
+            ?? throw new AppException("Categoría no encontrada.", 404);
+        return ToDto(result.Category, result.ProductsCount);
     }
 
     public async Task<CategoryResponseDto> CreateAsync(CategoryCreateDto request)
@@ -28,11 +35,18 @@ public class CategoryService : ICategoryService
         if (await _categoryRepository.SlugExistsAsync(slug))
             throw new AppException("Ya existe una categoría con un nombre equivalente.", 409);
 
-        var category = new Category { Name = request.Name, Slug = slug };
+        var category = new Category
+        {
+            Name = request.Name,
+            Slug = slug,
+            Description = request.Description,
+            ImageUrl = request.ImageUrl,
+            IsActive = request.IsActive,
+        };
         await _categoryRepository.AddAsync(category);
         await _categoryRepository.SaveChangesAsync();
 
-        return ToDto(category);
+        return ToDto(category, 0);
     }
 
     public async Task<CategoryResponseDto> UpdateAsync(Guid id, CategoryUpdateDto request)
@@ -40,16 +54,28 @@ public class CategoryService : ICategoryService
         var category = await _categoryRepository.GetByIdAsync(id)
             ?? throw new AppException("Categoría no encontrada.", 404);
 
-        var slug = SlugGenerator.Generate(request.Name);
+        // Si se proporcionó un slug manual, validarlo; de lo contrario regenerar desde el nombre
+        var slug = !string.IsNullOrWhiteSpace(request.Slug)
+            ? request.Slug.Trim().ToLowerInvariant()
+            : SlugGenerator.Generate(request.Name);
+
         if (await _categoryRepository.SlugExistsAsync(slug, excludeId: id))
             throw new AppException("Ya existe otra categoría con un nombre equivalente.", 409);
 
         category.Name = request.Name;
         category.Slug = slug;
+        category.Description = request.Description;
+        category.ImageUrl = request.ImageUrl;
+        category.IsActive = request.IsActive;
         category.UpdatedAt = DateTime.UtcNow;
 
         await _categoryRepository.SaveChangesAsync();
-        return ToDto(category);
+
+        var count = await _categoryRepository.HasProductsAsync(id)
+            ? (await _categoryRepository.GetByIdWithCountAsync(id))?.ProductsCount ?? 0
+            : 0;
+
+        return ToDto(category, count);
     }
 
     public async Task RemoveAsync(Guid id)
@@ -70,5 +96,15 @@ public class CategoryService : ICategoryService
         return categories.Select(c => new CategoryPublicDto(c.Id, c.Name, c.Slug)).ToList();
     }
 
-    private static CategoryResponseDto ToDto(Category c) => new(c.Id, c.Name, c.Slug);
+    private static CategoryResponseDto ToDto(Category c, int productsCount) => new(
+        c.Id,
+        c.Name,
+        c.Slug,
+        c.Description,
+        c.ImageUrl,
+        c.IsActive,
+        productsCount,
+        c.CreatedAt,
+        c.UpdatedAt
+    );
 }

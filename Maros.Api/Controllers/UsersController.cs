@@ -30,15 +30,41 @@ public class UsersController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var users = await _userService.GetAllAsync();
-        return Ok(users);
+        try
+        {
+            var result = await _userService.GetAllAsync();
+            return Ok(result);
+        }
+        catch (AppException ex)
+        {
+            _logger.LogWarning(ex, "Excepción al consultar usuarios: {Message}", ex.Message);
+            return StatusCode(ex.StatusCode, new { status = ex.StatusCode, message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al consultar usuarios");
+            return StatusCode(500, new { status = 500, message = "Ocurrió un error al obtener la lista de usuarios." });
+        }
     }
 
     [HttpPost("invite")]
     public async Task<IActionResult> Invite([FromBody] InviteUserRequestDto request)
     {
-        var created = await _userService.InviteAsync(request);
-        return CreatedAtAction(nameof(GetAll), new { id = created.Id }, created);
+        try
+        {
+            var created = await _userService.InviteAsync(request);
+            return CreatedAtAction(nameof(GetAll), new { id = created.Id }, created);
+        }
+        catch (AppException ex)
+        {
+            _logger.LogWarning(ex, "Excepción al invitar usuario: {Message}", ex.Message);
+            return StatusCode(ex.StatusCode, new { status = ex.StatusCode, message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al invitar usuario");
+            return StatusCode(500, new { status = 500, message = "Ocurrió un error al enviar la invitación." });
+        }
     }
 
     [HttpPut("{id:guid}")]

@@ -8,6 +8,7 @@ public class MarosDbContext : DbContext
     public MarosDbContext(DbContextOptions<MarosDbContext> options) : base(options) { }
 
     public DbSet<User> Users => Set<User>();
+    public DbSet<UserAuditLog> UserAuditLogs => Set<UserAuditLog>();
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<Product> Products => Set<Product>();
     public DbSet<ProductImage> ProductImages => Set<ProductImage>();

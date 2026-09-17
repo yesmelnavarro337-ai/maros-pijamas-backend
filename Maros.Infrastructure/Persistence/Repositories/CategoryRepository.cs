@@ -14,8 +14,37 @@ public class CategoryRepository : ICategoryRepository
     public Task<List<Category>> GetAllAsync() =>
         _context.Categories.OrderBy(c => c.Name).ToListAsync();
 
+    public async Task<List<(Category Category, int ProductsCount)>> GetAllWithCountAsync()
+    {
+        var categories = await _context.Categories
+            .OrderBy(c => c.Name)
+            .Select(c => new
+            {
+                Category = c,
+                ProductsCount = c.Products != null ? c.Products.Count : 0
+            })
+            .ToListAsync();
+
+        return categories.Select(x => (x.Category, x.ProductsCount)).ToList();
+    }
+
     public Task<Category?> GetByIdAsync(Guid id) =>
         _context.Categories.FirstOrDefaultAsync(c => c.Id == id);
+
+    public async Task<(Category Category, int ProductsCount)?> GetByIdWithCountAsync(Guid id)
+    {
+        var result = await _context.Categories
+            .Where(c => c.Id == id)
+            .Select(c => new
+            {
+                Category = c,
+                ProductsCount = c.Products != null ? c.Products.Count : 0
+            })
+            .FirstOrDefaultAsync();
+
+        if (result == null) return null;
+        return (result.Category, result.ProductsCount);
+    }
 
     public Task<bool> SlugExistsAsync(string slug, Guid? excludeId = null) =>
         _context.Categories.AnyAsync(c => c.Slug == slug && (excludeId == null || c.Id != excludeId));

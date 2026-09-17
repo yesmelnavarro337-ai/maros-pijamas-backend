@@ -1,5 +1,11 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace Maros.Application.DTOs.Testimonials;
 
-public record TestimonialUpdateDto([Required] string Status);
+public record TestimonialUpdateDto(
+    string ClientName,
+    string? City,
+    int Rating,
+    string Quote,
+    string? AvatarUrl,
+    string Status,
+    DateTime? PublishDate
+);

@@ -12,7 +12,7 @@ public class BlogPostRepository : IBlogPostRepository
 
     public BlogPostRepository(MarosDbContext context) => _context = context;
 
-    public IQueryable<BlogPost> QueryAll() => _context.BlogPosts;
+    public IQueryable<BlogPost> QueryAll() => _context.BlogPosts.AsNoTracking();
 
     public Task<BlogPost?> GetByIdAsync(Guid id) =>
         _context.BlogPosts.FirstOrDefaultAsync(p => p.Id == id);
@@ -22,6 +22,7 @@ public class BlogPostRepository : IBlogPostRepository
 
     public Task<List<BlogPost>> GetPublicAsync() =>
         _context.BlogPosts
+            .AsNoTracking()
             .Where(p => p.Status == BlogStatus.Publicado)
             .OrderByDescending(p => p.PublishDate)
             .ToListAsync();

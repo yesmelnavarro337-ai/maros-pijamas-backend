@@ -14,6 +14,7 @@ public class CollectionRepository : ICollectionRepository
 
     private IQueryable<Collection> QueryWithIncludes() =>
         _context.Collections
+            .Include(c => c.Seasons)
             .Include(c => c.ProductCollections)
                 .ThenInclude(pc => pc.Product)
                     .ThenInclude(p => p.Images);

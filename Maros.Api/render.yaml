@@ -28,15 +28,15 @@ services:
       - key: Jwt__Audience
         value: MarosPijamasAdmin
       - key: Smtp__Host
-        value: smtp.gmail.com
+        value: smtp-relay.brevo.com
       - key: Smtp__Port
         value: "587"
       - key: Smtp__EnableSsl
         value: "true"
       - key: Smtp__Username
-        value: marospijamas@gmail.com
+        value: b91228001@smtp-brevo.com
       - key: Smtp__From
-        value: marospijamas@gmail.com
+        value: b91228001@smtp-brevo.com
       - key: Smtp__FromName
         value: Maro's Pijamas
       # CORS: reemplaza estos con los dominios REALES de tus frontends en Vercel.

@@ -18,9 +18,9 @@ public class TestimonialsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll([FromQuery] TestimonialQueryParams query)
     {
-        var testimonials = await _testimonialService.GetAllAsync();
+        var testimonials = await _testimonialService.GetAllAsync(query);
         return Ok(testimonials);
     }
 
@@ -30,6 +30,14 @@ public class TestimonialsController : ControllerBase
     {
         var created = await _testimonialService.CreateAsync(request);
         return CreatedAtAction(nameof(GetAll), new { id = created.Id }, created);
+    }
+
+    [HttpPut("{id:guid}")]
+    [Authorize(Policy = "RequireEditorOrAdmin")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] TestimonialUpdateDto request)
+    {
+        var updated = await _testimonialService.UpdateAsync(id, request);
+        return Ok(updated);
     }
 
     [HttpPut("{id:guid}/status")]

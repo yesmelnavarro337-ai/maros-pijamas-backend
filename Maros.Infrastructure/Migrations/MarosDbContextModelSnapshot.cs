@@ -123,7 +123,7 @@ namespace Maros.Infrastructure.Migrations
                     b.HasIndex("Slug")
                         .IsUnique();
 
-                    b.ToTable("BlogPosts");
+                    b.ToTable("BlogPosts", (string)null);
                 });
 
             modelBuilder.Entity("Maros.Domain.Entities.Category", b =>
@@ -134,6 +134,15 @@ namespace Maros.Infrastructure.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -861,7 +870,19 @@ namespace Maros.Infrastructure.Migrations
                     b.Property<bool>("AutoBackupEnabled")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("AutoReplyMessage")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("BackupFrequency")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("BackupRetentionDays")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("BackupTime")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -869,6 +890,18 @@ namespace Maros.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
+
+                    b.Property<string>("CanonicalUrl")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ContactEmail")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ContactPhone")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -881,6 +914,14 @@ namespace Maros.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)");
+
+                    b.Property<string>("DateFormat")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("DefaultSubject")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -907,12 +948,27 @@ namespace Maros.Infrastructure.Migrations
                     b.Property<string>("Instagram")
                         .HasColumnType("text");
 
+                    b.Property<string>("Keywords")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("Language")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTime?>("LastBackupDate")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastBackupSize")
+                        .HasColumnType("text");
+
+                    b.Property<string>("LegalCookiesPolicy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("LegalPrivacyPolicy")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("LegalPrivacyUrl")
                         .IsRequired()
@@ -922,9 +978,16 @@ namespace Maros.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("LegalTermsAndConditions")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("LegalTermsUrl")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<int>("LockoutDurationMinutes")
+                        .HasColumnType("integer");
 
                     b.Property<string>("LogoUrl")
                         .HasColumnType("text");
@@ -932,7 +995,20 @@ namespace Maros.Infrastructure.Migrations
                     b.Property<bool>("MaintenanceMode")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("MapImageUrl")
+                        .HasColumnType("text");
+
+                    b.Property<int>("MaxLoginAttempts")
+                        .HasColumnType("integer");
+
                     b.Property<bool>("NotifyNewQuotation")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("RobotsTag")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("SecurityNotificationsEnabled")
                         .HasColumnType("boolean");
 
                     b.Property<string>("SeoMetaDescription")
@@ -946,8 +1022,15 @@ namespace Maros.Infrastructure.Migrations
                     b.Property<string>("SeoSocialImageUrl")
                         .HasColumnType("text");
 
+                    b.Property<string>("ServerIp")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<int>("SessionTimeoutMinutes")
                         .HasColumnType("integer");
+
+                    b.Property<bool>("ShowLocation")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("SiteName")
                         .IsRequired()
@@ -964,11 +1047,23 @@ namespace Maros.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("Twitter")
+                        .HasColumnType("text");
+
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("boolean");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Whatsapp")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("WhatsappButtonEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("WhatsappButtonImageUrl")
+                        .HasColumnType("text");
 
                     b.Property<string>("WhatsappDefaultMessage")
                         .IsRequired()
@@ -978,6 +1073,16 @@ namespace Maros.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)");
+
+                    b.Property<string>("WhatsappPosition")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("WwwRedirect")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Youtube")
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -990,12 +1095,21 @@ namespace Maros.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("AvatarUrl")
+                        .HasColumnType("text");
+
+                    b.Property<string>("City")
+                        .HasColumnType("text");
+
                     b.Property<string>("ClientName")
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)");
 
                     b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("PublishDate")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Quote")
@@ -1025,6 +1139,9 @@ namespace Maros.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("AvatarUrl")
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -1032,6 +1149,12 @@ namespace Maros.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
+
+                    b.Property<bool>("EmailNotificationsEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("InAppNotificationsEnabled")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("InviteToken")
                         .HasMaxLength(64)
@@ -1049,6 +1172,10 @@ namespace Maros.Infrastructure.Migrations
                         .HasColumnType("character varying(200)");
 
                     b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Phone")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -1074,6 +1201,43 @@ namespace Maros.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("Maros.Domain.Entities.UserAuditLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeviceType")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("IpAddress")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UserAgent")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserAuditLogs");
                 });
 
             modelBuilder.Entity("Maros.Domain.Entities.Banner", b =>
@@ -1232,6 +1396,17 @@ namespace Maros.Infrastructure.Migrations
                     b.Navigation("Product");
 
                     b.Navigation("Season");
+                });
+
+            modelBuilder.Entity("Maros.Domain.Entities.UserAuditLog", b =>
+                {
+                    b.HasOne("Maros.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Maros.Domain.Entities.Category", b =>

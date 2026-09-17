@@ -13,12 +13,13 @@ public class ProductServiceTests
 {
     private readonly Mock<IProductRepository> _productRepository = new();
     private readonly Mock<ICategoryRepository> _categoryRepository = new();
+    private readonly Mock<ISeasonRepository> _seasonRepository = new();
     private readonly Mock<IPaginationService> _paginationService = new();
     private readonly ProductService _sut;
 
     public ProductServiceTests()
     {
-        _sut = new ProductService(_productRepository.Object, _categoryRepository.Object, _paginationService.Object);
+        _sut = new ProductService(_productRepository.Object, _categoryRepository.Object, _seasonRepository.Object, _paginationService.Object);
     }
 
     [Fact]

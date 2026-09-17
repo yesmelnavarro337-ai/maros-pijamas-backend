@@ -10,5 +10,7 @@ public record QuotationResponseDto(
     string Notes,
     List<QuotationItemResponseDto> Items,
     List<string> ReferenceImages,
-    DateTime CreatedAt
+    DateTime CreatedAt,
+    string? CustomerEmail = null,
+    DateTime? UpdatedAt = null
 );

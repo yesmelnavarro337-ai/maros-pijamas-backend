@@ -15,6 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // ─── Servicios base ───────────────────────────────────────────────
 builder.Services.AddControllers();
+builder.Services.AddMemoryCache();
 
 // Reemplaza el formato ValidationProblemDetails por defecto de ASP.NET Core
 // con nuestro ApiErrorResponse, para que un fallo de [Required]/[EmailAddress]/etc.
@@ -128,9 +129,10 @@ if (app.Environment.IsDevelopment())
         options.Title = "Maro's Pijamas API";
     });
 
-    // Sembrar admin inicial solo en desarrollo, solo si la tabla está vacía.
+    // Sembrar/actualizar usuario admin inicial y configuraciones predeterminadas.
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<MarosDbContext>();
+    await db.Database.MigrateAsync();
     await SeedData.SeedInitialAdminAsync(db, app.Configuration);
     await SiteSettingsSeed.SeedDefaultAsync(db);
     await PageHeaderSeed.SeedDefaultAsync(db);

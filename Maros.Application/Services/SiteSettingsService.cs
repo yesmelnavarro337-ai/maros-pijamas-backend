@@ -17,59 +17,93 @@ public class SiteSettingsService : ISiteSettingsService
 
     public async Task<SiteSettingsResponseDto> GetAsync()
     {
-        var settings = await _repository.GetAsync()
-            ?? throw new AppException("La configuración del sitio aún no ha sido inicializada.", 404);
+        var settings = await _repository.GetAsync();
+        if (settings == null)
+        {
+            settings = new Domain.Entities.SiteSettings();
+            await _repository.AddAsync(settings);
+            await _repository.SaveChangesAsync();
+        }
         return ToDto(settings);
     }
 
     public async Task<SiteSettingsResponseDto> UpdateAsync(SiteSettingsUpdateDto request)
     {
-        var settings = await _repository.GetAsync()
-            ?? throw new AppException("La configuración del sitio aún no ha sido inicializada.", 404);
+        var settings = await _repository.GetAsync();
+        if (settings == null)
+        {
+            settings = new Domain.Entities.SiteSettings();
+            await _repository.AddAsync(settings);
+        }
 
-        settings.SiteName = request.SiteName;
-        settings.Description = request.Description;
-        settings.Currency = request.Currency;
-        settings.Timezone = request.Timezone;
-        settings.Language = request.Language;
-        settings.MaintenanceMode = request.MaintenanceMode;
-        settings.LogoUrl = request.LogoUrl;
-        settings.FaviconUrl = request.FaviconUrl;
-        settings.HomeSectionsJson = request.HomeSections is null
-            ? settings.HomeSectionsJson
-            : JsonSerializer.Serialize(request.HomeSections);
+        if (request.SiteName != null) settings.SiteName = request.SiteName;
+        if (request.Description != null) settings.Description = request.Description;
+        if (request.Currency != null) settings.Currency = request.Currency;
+        if (request.Timezone != null) settings.Timezone = request.Timezone;
+        if (request.Language != null) settings.Language = request.Language;
+        if (request.DateFormat != null) settings.DateFormat = request.DateFormat;
+        if (request.MaintenanceMode.HasValue) settings.MaintenanceMode = request.MaintenanceMode.Value;
+        if (request.LogoUrl != null) settings.LogoUrl = request.LogoUrl;
+        if (request.FaviconUrl != null) settings.FaviconUrl = request.FaviconUrl;
 
-        settings.Instagram = request.Instagram;
-        settings.Facebook = request.Facebook;
-        settings.TikTok = request.TikTok;
+        if (request.HomeSections != null)
+            settings.HomeSectionsJson = JsonSerializer.Serialize(request.HomeSections);
 
-        settings.WhatsappNumber = request.WhatsappNumber;
-        settings.WhatsappDefaultMessage = request.WhatsappDefaultMessage;
+        if (request.Instagram != null) settings.Instagram = request.Instagram;
+        if (request.Facebook != null) settings.Facebook = request.Facebook;
+        if (request.TikTok != null) settings.TikTok = request.TikTok;
+        if (request.Whatsapp != null) settings.Whatsapp = request.Whatsapp;
+        if (request.Youtube != null) settings.Youtube = request.Youtube;
+        if (request.Twitter != null) settings.Twitter = request.Twitter;
 
-        settings.Address = request.Address ?? string.Empty;
-        settings.BusinessHours = request.BusinessHours ?? string.Empty;
+        if (request.WhatsappNumber != null) settings.WhatsappNumber = request.WhatsappNumber;
+        if (request.WhatsappDefaultMessage != null) settings.WhatsappDefaultMessage = request.WhatsappDefaultMessage;
+        if (request.WhatsappButtonImageUrl != null) settings.WhatsappButtonImageUrl = request.WhatsappButtonImageUrl;
+        if (request.WhatsappPosition != null) settings.WhatsappPosition = request.WhatsappPosition;
+        if (request.WhatsappButtonEnabled.HasValue) settings.WhatsappButtonEnabled = request.WhatsappButtonEnabled.Value;
 
-        settings.EmailFromName = request.EmailFromName;
-        settings.EmailFromAddress = request.EmailFromAddress;
-        settings.NotifyNewQuotation = request.NotifyNewQuotation;
+        if (request.ContactPhone != null) settings.ContactPhone = request.ContactPhone;
+        if (request.ContactEmail != null) settings.ContactEmail = request.ContactEmail;
+        if (request.Address != null) settings.Address = request.Address;
+        if (request.BusinessHours != null) settings.BusinessHours = request.BusinessHours;
+        if (request.MapImageUrl != null) settings.MapImageUrl = request.MapImageUrl;
+        if (request.ShowLocation.HasValue) settings.ShowLocation = request.ShowLocation.Value;
 
-        settings.SeoMetaTitle = request.SeoMetaTitle;
-        settings.SeoMetaDescription = request.SeoMetaDescription;
-        settings.SeoSocialImageUrl = request.SeoSocialImageUrl;
+        if (request.EmailFromName != null) settings.EmailFromName = request.EmailFromName;
+        if (request.EmailFromAddress != null) settings.EmailFromAddress = request.EmailFromAddress;
+        if (request.DefaultSubject != null) settings.DefaultSubject = request.DefaultSubject;
+        if (request.AutoReplyMessage != null) settings.AutoReplyMessage = request.AutoReplyMessage;
+        if (request.NotifyNewQuotation.HasValue) settings.NotifyNewQuotation = request.NotifyNewQuotation.Value;
 
-        settings.LegalTermsUrl = request.LegalTermsUrl;
-        settings.LegalPrivacyUrl = request.LegalPrivacyUrl;
-        settings.LegalReturnsPolicy = request.LegalReturnsPolicy;
+        if (request.SeoMetaTitle != null) settings.SeoMetaTitle = request.SeoMetaTitle;
+        if (request.SeoMetaDescription != null) settings.SeoMetaDescription = request.SeoMetaDescription;
+        if (request.Keywords != null) settings.Keywords = request.Keywords;
+        if (request.CanonicalUrl != null) settings.CanonicalUrl = request.CanonicalUrl;
+        if (request.RobotsTag != null) settings.RobotsTag = request.RobotsTag;
+        if (request.SeoSocialImageUrl != null) settings.SeoSocialImageUrl = request.SeoSocialImageUrl;
 
-        settings.CustomDomain = request.CustomDomain;
-        settings.SslEnabled = request.SslEnabled;
+        if (request.LegalPrivacyPolicy != null) settings.LegalPrivacyPolicy = request.LegalPrivacyPolicy;
+        if (request.LegalTermsAndConditions != null) settings.LegalTermsAndConditions = request.LegalTermsAndConditions;
+        if (request.LegalCookiesPolicy != null) settings.LegalCookiesPolicy = request.LegalCookiesPolicy;
+        if (request.LegalTermsUrl != null) settings.LegalTermsUrl = request.LegalTermsUrl;
+        if (request.LegalPrivacyUrl != null) settings.LegalPrivacyUrl = request.LegalPrivacyUrl;
+        if (request.LegalReturnsPolicy != null) settings.LegalReturnsPolicy = request.LegalReturnsPolicy;
 
-        settings.AutoBackupEnabled = request.AutoBackupEnabled;
-        settings.BackupFrequency = request.BackupFrequency;
-        // LastBackupDate NO se toca aquí — lo actualiza el proceso de backup real, no este endpoint.
+        if (request.CustomDomain != null) settings.CustomDomain = request.CustomDomain;
+        if (request.WwwRedirect.HasValue) settings.WwwRedirect = request.WwwRedirect.Value;
+        if (request.ServerIp != null) settings.ServerIp = request.ServerIp;
+        if (request.SslEnabled.HasValue) settings.SslEnabled = request.SslEnabled.Value;
 
-        settings.TwoFactorEnabled = request.TwoFactorEnabled;
-        settings.SessionTimeoutMinutes = request.SessionTimeoutMinutes;
+        if (request.AutoBackupEnabled.HasValue) settings.AutoBackupEnabled = request.AutoBackupEnabled.Value;
+        if (request.BackupFrequency != null) settings.BackupFrequency = request.BackupFrequency;
+        if (request.BackupTime != null) settings.BackupTime = request.BackupTime;
+        if (request.BackupRetentionDays != null) settings.BackupRetentionDays = request.BackupRetentionDays;
+
+        if (request.TwoFactorEnabled.HasValue) settings.TwoFactorEnabled = request.TwoFactorEnabled.Value;
+        if (request.MaxLoginAttempts.HasValue) settings.MaxLoginAttempts = request.MaxLoginAttempts.Value;
+        if (request.LockoutDurationMinutes.HasValue) settings.LockoutDurationMinutes = request.LockoutDurationMinutes.Value;
+        if (request.SecurityNotificationsEnabled.HasValue) settings.SecurityNotificationsEnabled = request.SecurityNotificationsEnabled.Value;
+        if (request.SessionTimeoutMinutes.HasValue) settings.SessionTimeoutMinutes = request.SessionTimeoutMinutes.Value;
 
         settings.UpdatedAt = DateTime.UtcNow;
 
@@ -79,8 +113,7 @@ public class SiteSettingsService : ISiteSettingsService
 
     public async Task<SiteSettingsPublicDto> GetPublicAsync()
     {
-        var settings = await _repository.GetAsync()
-            ?? throw new AppException("La configuración del sitio aún no ha sido inicializada.", 404);
+        var settings = await _repository.GetAsync() ?? new Domain.Entities.SiteSettings();
 
         return new SiteSettingsPublicDto(
             settings.SiteName,
@@ -116,16 +149,16 @@ public class SiteSettingsService : ISiteSettingsService
     }
 
     private static SiteSettingsResponseDto ToDto(Domain.Entities.SiteSettings s) => new(
-        s.SiteName, s.Description, s.Currency, s.Timezone, s.Language, s.MaintenanceMode, s.LogoUrl,
-        s.FaviconUrl, DeserializeSections(s.HomeSectionsJson) ?? [],
-        s.Instagram, s.Facebook, s.TikTok,
-        s.WhatsappNumber, s.WhatsappDefaultMessage,
-        s.EmailFromName, s.EmailFromAddress, s.NotifyNewQuotation,
-        s.Address, s.BusinessHours,
-        s.SeoMetaTitle, s.SeoMetaDescription, s.SeoSocialImageUrl,
-        s.LegalTermsUrl, s.LegalPrivacyUrl, s.LegalReturnsPolicy,
-        s.CustomDomain, s.SslEnabled,
-        s.AutoBackupEnabled, s.BackupFrequency, s.LastBackupDate,
-        s.TwoFactorEnabled, s.SessionTimeoutMinutes
-        );
+        s.SiteName, s.Description, s.Currency, s.Timezone, s.Language, s.DateFormat, s.MaintenanceMode, s.LogoUrl, s.FaviconUrl,
+        DeserializeSections(s.HomeSectionsJson) ?? [],
+        s.Instagram, s.Facebook, s.TikTok, s.Whatsapp, s.Youtube, s.Twitter,
+        s.WhatsappNumber, s.WhatsappDefaultMessage, s.WhatsappButtonImageUrl, s.WhatsappPosition, s.WhatsappButtonEnabled,
+        s.ContactPhone, s.ContactEmail, s.Address, s.BusinessHours, s.MapImageUrl, s.ShowLocation,
+        s.EmailFromName, s.EmailFromAddress, s.DefaultSubject, s.AutoReplyMessage, s.NotifyNewQuotation,
+        s.SeoMetaTitle, s.SeoMetaDescription, s.Keywords, s.CanonicalUrl, s.RobotsTag, s.SeoSocialImageUrl,
+        s.LegalPrivacyPolicy, s.LegalTermsAndConditions, s.LegalCookiesPolicy, s.LegalTermsUrl, s.LegalPrivacyUrl, s.LegalReturnsPolicy,
+        s.CustomDomain, s.WwwRedirect, s.ServerIp, s.SslEnabled,
+        s.AutoBackupEnabled, s.BackupFrequency, s.BackupTime, s.BackupRetentionDays, s.LastBackupDate, s.LastBackupSize,
+        s.TwoFactorEnabled, s.MaxLoginAttempts, s.LockoutDurationMinutes, s.SecurityNotificationsEnabled, s.SessionTimeoutMinutes
+    );
 }

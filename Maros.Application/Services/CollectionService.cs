@@ -137,17 +137,38 @@ public class CollectionService : ICollectionService
             c.Description,
             c.CoverImageUrl,
             c.AccentHex,
-            c.ProductCollections.Count
+            c.ProductCollections != null ? c.ProductCollections.Count : 0
         )).ToList();
     }
 
-    private static CollectionResponseDto ToDto(Collection c) => new(
-        c.Id,
-        c.Name,
-        c.Description,
-        c.CoverImageUrl,
-        c.AccentHex,
-        c.IsDefault,
-        c.ProductCollections.Select(pc => pc.ProductId).ToList()
-    );
+    private static CollectionResponseDto ToDto(Collection c)
+    {
+        var activeSeason = c.Seasons?.FirstOrDefault(s => s.Status == Domain.Enums.SeasonStatus.Activa);
+        var latestSeason = c.Seasons?.OrderByDescending(s => s.StartDate).FirstOrDefault();
+        var seasonName = activeSeason != null
+            ? (activeSeason.Name.Contains("Amor", StringComparison.OrdinalIgnoreCase) ? "Especial" : activeSeason.Name)
+            : (latestSeason != null ? latestSeason.Name : (c.IsDefault ? "Permanente" : "Especial"));
+
+        if (c.Name.Contains("General", StringComparison.OrdinalIgnoreCase))
+        {
+            seasonName = "Permanente";
+        }
+
+        var isActive = c.IsDefault || (activeSeason != null) || (c.Name.Contains("General", StringComparison.OrdinalIgnoreCase));
+        var productsCount = c.ProductCollections != null ? c.ProductCollections.Count : 0;
+
+        return new(
+            c.Id,
+            c.Name,
+            c.Description,
+            c.CoverImageUrl,
+            c.AccentHex,
+            c.IsDefault,
+            c.ProductCollections != null ? c.ProductCollections.Select(pc => pc.ProductId).ToList() : new List<Guid>(),
+            seasonName,
+            isActive,
+            productsCount,
+            c.UpdatedAt ?? c.CreatedAt
+        );
+    }
 }

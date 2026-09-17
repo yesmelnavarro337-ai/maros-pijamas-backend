@@ -4,7 +4,7 @@ namespace Maros.Application.Interfaces;
 
 public interface IUserService
 {
-    Task<List<UserResponseDto>> GetAllAsync();
+    Task<UserListResponseDto> GetAllAsync();
     Task<UserResponseDto> InviteAsync(InviteUserRequestDto request);
     Task<UserResponseDto> UpdateAsync(Guid id, UpdateUserRequestDto request);
     Task<UserResponseDto> UpdateRoleAsync(Guid id, UpdateUserRoleRequestDto request, Guid actingUserId);

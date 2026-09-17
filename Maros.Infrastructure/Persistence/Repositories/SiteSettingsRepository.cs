@@ -14,6 +14,9 @@ public class SiteSettingsRepository : ISiteSettingsRepository
     public Task<SiteSettings?> GetAsync() =>
         _context.SiteSettings.FirstOrDefaultAsync();
 
+    public async Task AddAsync(SiteSettings settings) =>
+        await _context.SiteSettings.AddAsync(settings);
+
     public Task SaveChangesAsync() =>
         _context.SaveChangesAsync();
 }

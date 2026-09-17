@@ -11,43 +11,114 @@ public class ProductService : IProductService
 {
     private readonly IProductRepository _productRepository;
     private readonly ICategoryRepository _categoryRepository;
+    private readonly ISeasonRepository _seasonRepository;
     private readonly IPaginationService _paginationService;
 
     public ProductService(
         IProductRepository productRepository,
         ICategoryRepository categoryRepository,
+        ISeasonRepository seasonRepository,
         IPaginationService paginationService)
     {
         _productRepository = productRepository;
         _categoryRepository = categoryRepository;
+        _seasonRepository = seasonRepository;
         _paginationService = paginationService;
     }
 
     public async Task<PagedResult<ProductResponseDto>> GetAllAsync(ProductQueryParams query)
     {
-        var products = _productRepository.QueryAll();
+        var products = _productRepository.QueryAll().Where(p => !p.IsDeleted);
 
         if (query.CategoryId.HasValue)
             products = products.Where(p => p.CategoryId == query.CategoryId.Value);
 
         if (!string.IsNullOrWhiteSpace(query.Status) &&
-            Enum.TryParse<ProductStatus>(query.Status, ignoreCase: true, out var status))
-            products = products.Where(p => p.Status == status);
+            !query.Status.Equals("all", StringComparison.OrdinalIgnoreCase) &&
+            !query.Status.Equals("todos", StringComparison.OrdinalIgnoreCase))
+        {
+            var st = query.Status.ToLowerInvariant();
+            if (st is "active" or "activo")
+            {
+                products = products.Where(p => p.Status == ProductStatus.Activo);
+            }
+            else if (st is "lowstock" or "stockbajo")
+            {
+                products = products.Where(p => p.Status == ProductStatus.Activo && p.Variants.Sum(v => v.Stock) > 0 && p.Variants.Sum(v => v.Stock) <= 3);
+            }
+            else if (st is "outofstock" or "sinstock")
+            {
+                products = products.Where(p => p.Status == ProductStatus.Activo && p.Variants.Sum(v => v.Stock) == 0);
+            }
+            else if (Enum.TryParse<ProductStatus>(query.Status, ignoreCase: true, out var enumStatus))
+            {
+                products = products.Where(p => p.Status == enumStatus);
+            }
+        }
 
         if (!string.IsNullOrWhiteSpace(query.Search))
-            products = products.Where(p => p.Name.Contains(query.Search));
+        {
+            var search = query.Search.Trim();
+            products = products.Where(p => p.Name.Contains(search) || p.Slug.Contains(search) || p.Variants.Any(v => v.Sku.Contains(search)));
+        }
+
+        if (query.SeasonId.HasValue)
+        {
+            var season = await _seasonRepository.GetByIdAsync(query.SeasonId.Value);
+            if (season != null)
+            {
+                products = products.Where(p => p.ProductCollections.Any(pc => pc.CollectionId == season.CollectionId));
+            }
+        }
 
         products = ApplySorting(products, query.SortBy, query.SortDescending);
 
+        var seasons = await _seasonRepository.GetAllAsync();
+
         var paged = await _paginationService.PaginateAsync(products, query.PageNumber, query.PageSize);
-        return new PagedResult<ProductResponseDto>(paged.Items.Select(ToDto).ToList(), paged.PageNumber, paged.PageSize, paged.TotalCount);
+        var dtos = paged.Items.Select(p => ToDto(p, seasons)).ToList();
+
+        return new PagedResult<ProductResponseDto>(dtos, paged.PageNumber, paged.PageSize, paged.TotalCount);
+    }
+
+    public async Task<ProductMetricsDto> GetMetricsAsync()
+    {
+        var allProducts = _productRepository.QueryAll().Where(p => !p.IsDeleted).ToList();
+        var activeProducts = allProducts.Where(p => p.Status == ProductStatus.Activo).ToList();
+
+        var now = DateTime.UtcNow;
+        var periodStart = now.AddDays(-30);
+        var prevPeriodStart = now.AddDays(-60);
+
+        var currentActiveCount = activeProducts.Count(p => p.CreatedAt >= periodStart);
+        var prevActiveCount = activeProducts.Count(p => p.CreatedAt >= prevPeriodStart && p.CreatedAt < periodStart);
+
+        double variationPct = prevActiveCount == 0
+            ? (currentActiveCount > 0 ? 100.0 : 0.0)
+            : Math.Round(((double)(currentActiveCount - prevActiveCount) / prevActiveCount) * 100.0, 1);
+
+        var lowStockCount = activeProducts.Count(p =>
+        {
+            var stock = p.Variants.Sum(v => v.Stock);
+            return stock > 0 && stock <= 3;
+        });
+
+        var outOfStockCount = activeProducts.Count(p => p.Variants.Sum(v => v.Stock) == 0);
+
+        return new ProductMetricsDto(
+            ActiveProductsCount: activeProducts.Count,
+            ActiveProductsVariationPercentage: variationPct,
+            LowStockCount: lowStockCount,
+            OutOfStockCount: outOfStockCount
+        );
     }
 
     public async Task<ProductResponseDto> GetByIdAsync(Guid id)
     {
         var product = await _productRepository.GetByIdAsync(id)
             ?? throw new AppException("Producto no encontrado.", 404);
-        return ToDto(product);
+        var seasons = await _seasonRepository.GetAllAsync();
+        return ToDto(product, seasons);
     }
 
     public async Task<ProductResponseDto> CreateAsync(ProductCreateDto request)
@@ -86,7 +157,8 @@ public class ProductService : IProductService
         await _productRepository.SaveChangesAsync();
 
         var created = await _productRepository.GetByIdAsync(product.Id);
-        return ToDto(created!);
+        var seasons = await _seasonRepository.GetAllAsync();
+        return ToDto(created!, seasons);
     }
 
     public async Task<ProductResponseDto> UpdateAsync(Guid id, ProductUpdateDto request)
@@ -129,7 +201,8 @@ public class ProductService : IProductService
         await _productRepository.SaveChangesAsync();
 
         var updated = await _productRepository.GetByIdAsync(id);
-        return ToDto(updated!);
+        var seasons = await _seasonRepository.GetAllAsync();
+        return ToDto(updated!, seasons);
     }
 
     public async Task RemoveAsync(Guid id)
@@ -137,9 +210,6 @@ public class ProductService : IProductService
         var product = await _productRepository.GetByIdAsync(id)
             ?? throw new AppException("Producto no encontrado.", 404);
 
-        // Borrado lógico: no removemos el registro físico porque puede estar
-        // referenciado por otras entidades (cotizaciones, temporadas, etc.).
-        // Solo lo desactivamos para que deje de aparecer en el catálogo.
         product.IsDeleted = true;
         product.UpdatedAt = DateTime.UtcNow;
         await _productRepository.SaveChangesAsync();
@@ -257,40 +327,62 @@ public class ProductService : IProductService
         p.Variants.Select(v => new ProductPublicColorDto(v.ColorName, v.ColorHex)).DistinctBy(c => c.Name).ToList()
     );
 
-private static ProductPublicDetailDto ToPublicDetailDto(Product p) => new(
-          p.Id,
-          p.Name,
-          p.Slug,
-          p.Description,
-          p.BasePrice,
-          p.Category?.Name ?? string.Empty,
-          p.CategoryId,
-          p.Images.OrderBy(i => i.Order).Select(i => i.Url).ToList(),
-          p.Variants.Select(v => v.Size).Distinct().ToList(),
-          p.Variants
-              .Select(v => new ProductColorPublicDto(v.ColorName, v.ColorHex))
-              .DistinctBy(c => c.Name)
-              .ToList(),
-          p.Variants
-              .Select(v => new ProductPublicVariantDto(v.Size, v.ColorName, v.ColorHex, v.Stock > 0))
-              .ToList(),
-          p.Variants.Any(v => v.Stock > 0),
-          p.AllowCustomization,
-          p.DeliveryTime,
-          p.SeoTitle,
-          p.SeoDescription,
-          p.SeoSocialImageUrl,
-          p.SeoAltText,
-          p.ProductCollections.Select(pc => pc.CollectionId).ToList()
-      );
-
-    private static ProductResponseDto ToDto(Product p) => new(
-        p.Id, p.Name, p.Slug, p.CategoryId, p.Category?.Name ?? string.Empty, p.Description,
-        p.BasePrice, p.Status.ToString(), p.FeaturedHome, p.AllowCustomization, p.DeliveryTime,
-        p.SeoTitle, p.SeoDescription, p.SeoSlug, p.SeoSocialImageUrl, p.SeoAltText,
+    private static ProductPublicDetailDto ToPublicDetailDto(Product p) => new(
+        p.Id,
+        p.Name,
+        p.Slug,
+        p.Description,
+        p.BasePrice,
+        p.Category?.Name ?? string.Empty,
+        p.CategoryId,
         p.Images.OrderBy(i => i.Order).Select(i => i.Url).ToList(),
-        p.Variants.Select(v => new ProductVariantResponseDto(v.Id, v.Size, v.ColorName, v.ColorHex, v.Sku, v.Stock, v.ImageUrl)).ToList(),
-        p.ProductCollections.Select(pc => pc.CollectionId).ToList(),
-        p.CreatedAt
+        p.Variants.Select(v => v.Size).Distinct().ToList(),
+        p.Variants
+            .Select(v => new ProductColorPublicDto(v.ColorName, v.ColorHex))
+            .DistinctBy(c => c.Name)
+            .ToList(),
+        p.Variants
+            .Select(v => new ProductPublicVariantDto(v.Size, v.ColorName, v.ColorHex, v.Stock > 0))
+            .ToList(),
+        p.Variants.Any(v => v.Stock > 0),
+        p.AllowCustomization,
+        p.DeliveryTime,
+        p.SeoTitle,
+        p.SeoDescription,
+        p.SeoSocialImageUrl,
+        p.SeoAltText,
+        p.ProductCollections.Select(pc => pc.CollectionId).ToList()
     );
+
+    private static ProductResponseDto ToDto(Product p, List<Season>? seasons = null)
+    {
+        var primarySku = p.Variants.FirstOrDefault()?.Sku ?? (p.Id != Guid.Empty ? $"MP-{p.Id.ToString()[..4].ToUpper()}" : "MP-000");
+        var totalStock = p.Variants.Sum(v => v.Stock);
+        var imageUrl = p.Images.OrderBy(i => i.Order).Select(i => i.Url).FirstOrDefault();
+
+        string seasonName = "Otoño - Invierno";
+        if (seasons != null && p.ProductCollections.Any())
+        {
+            var collIds = p.ProductCollections.Select(pc => pc.CollectionId).ToHashSet();
+            var matchedSeason = seasons.FirstOrDefault(s => collIds.Contains(s.CollectionId));
+            if (matchedSeason != null)
+            {
+                seasonName = matchedSeason.Name;
+            }
+        }
+
+        return new ProductResponseDto(
+            p.Id, p.Name, p.Slug, p.CategoryId, p.Category?.Name ?? "Pijamas de mujer", p.Description,
+            p.BasePrice, p.Status.ToString(), p.FeaturedHome, p.AllowCustomization, p.DeliveryTime,
+            p.SeoTitle, p.SeoDescription, p.SeoSlug, p.SeoSocialImageUrl, p.SeoAltText,
+            p.Images.OrderBy(i => i.Order).Select(i => i.Url).ToList(),
+            p.Variants.Select(v => new ProductVariantResponseDto(v.Id, v.Size, v.ColorName, v.ColorHex, v.Sku, v.Stock, v.ImageUrl)).ToList(),
+            p.ProductCollections.Select(pc => pc.CollectionId).ToList(),
+            p.CreatedAt,
+            primarySku,
+            totalStock,
+            seasonName,
+            imageUrl
+        );
+    }
 }

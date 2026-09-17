@@ -23,6 +23,14 @@ public class ProductsController : ControllerBase
         var products = await _productService.GetAllAsync(query);
         return Ok(products);
     }
+
+    [HttpGet("metrics")]
+    public async Task<IActionResult> GetMetrics()
+    {
+        var metrics = await _productService.GetMetricsAsync();
+        return Ok(metrics);
+    }
+
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {

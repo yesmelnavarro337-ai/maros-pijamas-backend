@@ -24,10 +24,31 @@ public class CustomersController : ControllerBase
         return Ok(customers);
     }
 
+    [HttpGet("cities")]
+    public async Task<IActionResult> GetCities()
+    {
+        var cities = await _customerService.GetCitiesAsync();
+        return Ok(cities);
+    }
+
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
         var customer = await _customerService.GetByIdWithQuotationsAsync(id);
         return Ok(customer);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Create([FromBody] CustomerCreateDto request)
+    {
+        var created = await _customerService.CreateAsync(request);
+        return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+    }
+
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] CustomerUpdateDto request)
+    {
+        var updated = await _customerService.UpdateAsync(id, request);
+        return Ok(updated);
     }
 }

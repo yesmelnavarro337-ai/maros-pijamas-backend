@@ -20,5 +20,9 @@ public record ProductResponseDto(
     List<string> Images,
     List<ProductVariantResponseDto> Variants,
     List<Guid> CollectionIds,
-    DateTime CreatedAt
+    DateTime CreatedAt,
+    string Sku = "",
+    int TotalStock = 0,
+    string SeasonName = "Sin temporada",
+    string? ImageUrl = null
 );

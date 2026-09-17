@@ -7,6 +7,7 @@ namespace Maros.Application.Interfaces;
 public interface IProductService
 {
     Task<PagedResult<ProductResponseDto>> GetAllAsync(ProductQueryParams query);
+    Task<ProductMetricsDto> GetMetricsAsync();
     Task<ProductResponseDto> GetByIdAsync(Guid id);
     Task<ProductResponseDto> CreateAsync(ProductCreateDto request);
     Task<ProductResponseDto> UpdateAsync(Guid id, ProductUpdateDto request);
