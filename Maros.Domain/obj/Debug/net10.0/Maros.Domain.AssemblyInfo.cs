@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Maros.Domain")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9a2fc00a054036d6665aacbb8741b810899827b9")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6bd7fbdc76ac7255c8cdaaf0ce203dfc17ed6617")]
 [assembly: System.Reflection.AssemblyProductAttribute("Maros.Domain")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Maros.Domain")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
