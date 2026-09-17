@@ -25,6 +25,7 @@ public class ProfileController : ControllerBase
     private readonly MarosDbContext _dbContext;
     private readonly IMemoryCache _memoryCache;
     private readonly ILogger<ProfileController> _logger;
+    private readonly IImageStorageService _imageStorageService;
 
     public ProfileController(
         IUserRepository userRepository,
@@ -32,7 +33,8 @@ public class ProfileController : ControllerBase
         IPasswordHasher passwordHasher,
         MarosDbContext dbContext,
         IMemoryCache memoryCache,
-        ILogger<ProfileController> logger)
+        ILogger<ProfileController> logger,
+        IImageStorageService imageStorageService)
     {
         _userRepository = userRepository;
         _emailService = emailService;
@@ -40,6 +42,7 @@ public class ProfileController : ControllerBase
         _dbContext = dbContext;
         _memoryCache = memoryCache;
         _logger = logger;
+        _imageStorageService = imageStorageService;
     }
 
     private Guid CurrentUserId
@@ -91,6 +94,41 @@ public class ProfileController : ControllerBase
         await _userRepository.SaveChangesAsync();
 
         return Ok(ToProfileDto(user));
+    }
+
+    [HttpPost("avatar")]
+    public async Task<IActionResult> UploadAvatar([FromForm] IFormFile file)
+    {
+        if (file is null || file.Length == 0)
+        {
+            return BadRequest(new { message = "Debes proporcionar una imagen válida." });
+        }
+
+        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
+        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+        if (!allowedExtensions.Contains(extension))
+        {
+            return BadRequest(new { message = "Formato de archivo no permitido. Usa JPG, PNG, WEBP o GIF." });
+        }
+
+        var user = await _userRepository.GetByIdAsync(CurrentUserId);
+        if (user is null)
+            return NotFound(new { message = "Usuario no encontrado." });
+
+        try
+        {
+            using var stream = file.OpenReadStream();
+            var uploadResult = await _imageStorageService.UploadAsync(stream, file.FileName, "profiles");
+            user.AvatarUrl = uploadResult.Url;
+            await _userRepository.SaveChangesAsync();
+
+            return Ok(ToProfileDto(user));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al subir avatar a Cloudinary para usuario {UserId}", CurrentUserId);
+            return StatusCode(500, new { message = $"Error al subir la foto de perfil: {ex.Message}" });
+        }
     }
 
     [HttpPost("change-password")]

@@ -28,7 +28,7 @@ public static class SiteSettingsSeed
             Currency = "COP - Peso Colombiano",
             Timezone = "UTC-05:00 Bogotá",
             Language = "Español",
-            WhatsappNumber = string.Empty,
+            WhatsappNumber = "573013169974",
             WhatsappDefaultMessage = "¡Hola! Me interesa hacer un pedido de pijamas personalizadas.",
             Address = "Mz 3 Casa 98 Urb. Doña Clara, Valledupar",
             BusinessHours = "Lunes a Sábado · 8:00 a.m. – 6:00 p.m.",

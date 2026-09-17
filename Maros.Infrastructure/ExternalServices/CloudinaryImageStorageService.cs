@@ -25,18 +25,29 @@ public class CloudinaryImageStorageService : IImageStorageService
 
     public async Task<ImageUploadResultDto> UploadAsync(Stream fileStream, string fileName, string folder)
     {
-        var uploadParams = new ImageUploadParams
+        try
         {
-            File = new FileDescription(fileName, fileStream),
-            Folder = $"maros-pijamas/{folder}",
-        };
+            var uploadParams = new ImageUploadParams
+            {
+                File = new FileDescription(fileName, fileStream),
+                Folder = $"maros-pijamas/{folder}",
+            };
 
-        var result = await _cloudinary.UploadAsync(uploadParams);
+            var result = await _cloudinary.UploadAsync(uploadParams);
 
-        if (result.Error is not null)
-            throw new InvalidOperationException($"Error al subir la imagen a Cloudinary: {result.Error.Message}");
+            if (result.Error is not null)
+                throw new InvalidOperationException($"Error al subir la imagen a Cloudinary: {result.Error.Message}");
 
-        return new ImageUploadResultDto(result.SecureUrl.ToString(), result.PublicId);
+            return new ImageUploadResultDto(result.SecureUrl.ToString(), result.PublicId);
+        }
+        catch (InvalidOperationException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Error de conexión o procesamiento al subir la imagen a Cloudinary: {ex.Message}", ex);
+        }
     }
 
     public async Task DeleteAsync(string publicId)

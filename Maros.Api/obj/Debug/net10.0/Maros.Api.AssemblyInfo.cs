@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Maros.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+726fce4b48bb070f34d08181bcd9742fc71cb697")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c415207997176a245f30534a142b2e32911eb0ac")]
 [assembly: System.Reflection.AssemblyProductAttribute("Maros.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Maros.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
