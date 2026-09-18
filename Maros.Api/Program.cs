@@ -128,9 +128,12 @@ if (app.Environment.IsDevelopment())
     {
         options.Title = "Maro's Pijamas API";
     });
+}
 
-    // Sembrar/actualizar usuario admin inicial y configuraciones predeterminadas.
-    using var scope = app.Services.CreateScope();
+// Sembrar/actualizar usuario admin inicial y configuraciones predeterminadas.
+// Se ejecuta en todos los entornos para garantizar que el admin exista en producción.
+using (var scope = app.Services.CreateScope())
+{
     var db = scope.ServiceProvider.GetRequiredService<MarosDbContext>();
     await db.Database.MigrateAsync();
     await SeedData.SeedInitialAdminAsync(db, app.Configuration);

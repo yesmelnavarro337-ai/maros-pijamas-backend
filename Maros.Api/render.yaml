@@ -54,3 +54,7 @@ services:
         value: https://maros-admin.vercel.app
       - key: Invitation__AcceptUrl
         value: https://maros-admin.vercel.app/accept-invitation
+      - key: SeedAdmin__Email
+        value: marospijamas@gmail.com
+      - key: SeedAdmin__Password
+        sync: false
