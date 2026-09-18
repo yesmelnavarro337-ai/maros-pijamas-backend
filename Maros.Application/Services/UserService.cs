@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using System.Web;
 using Maros.Application.Common;
 using Maros.Application.DTOs.Users;
 using Maros.Application.Interfaces;
@@ -84,8 +85,10 @@ public class UserService : IUserService
         if (string.IsNullOrWhiteSpace(inviteToken))
             return;
 
-        var baseUrl = _invitationOptions.Value.AcceptUrl.TrimEnd('/');
-        var acceptUrl = $"{baseUrl}?token={Uri.EscapeDataString(inviteToken)}";
+        var frontendUrl = ResolveFrontendUrl(_invitationOptions.Value);
+        var encodedToken = HttpUtility.UrlEncode(inviteToken);
+        var encodedEmail = HttpUtility.UrlEncode(email);
+        var acceptUrl = $"{frontendUrl}/accept-invitation?token={encodedToken}&email={encodedEmail}";
 
         _ = Task.Run(async () =>
         {
@@ -111,6 +114,25 @@ public class UserService : IUserService
             .TrimEnd('=')
             .Replace('+', '-')
             .Replace('/', '_');
+    }
+
+    private static string ResolveFrontendUrl(InvitationOptions options)
+    {
+        if (!string.IsNullOrWhiteSpace(options.FrontendUrl))
+            return options.FrontendUrl.TrimEnd('/');
+
+        var acceptUrl = options.AcceptUrl?.Trim();
+        if (string.IsNullOrWhiteSpace(acceptUrl))
+            return "https://maros-admin.vercel.app";
+
+        const string legacyPath = "/accept-invite";
+        const string currentPath = "/accept-invitation";
+
+        return acceptUrl.EndsWith(legacyPath, StringComparison.OrdinalIgnoreCase)
+            ? acceptUrl[..^legacyPath.Length].TrimEnd('/')
+            : acceptUrl.EndsWith(currentPath, StringComparison.OrdinalIgnoreCase)
+                ? acceptUrl[..^currentPath.Length].TrimEnd('/')
+                : acceptUrl.TrimEnd('/');
     }
 
     public async Task<UserResponseDto> UpdateAsync(Guid id, UpdateUserRequestDto request)

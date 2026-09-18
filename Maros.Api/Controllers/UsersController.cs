@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using Maros.Application.Common;
+using Maros.Application.DTOs.Invitations;
 using Maros.Application.DTOs.Users;
 using Maros.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -16,11 +17,16 @@ namespace Maros.Api.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
+    private readonly IInvitationService _invitationService;
     private readonly ILogger<UsersController> _logger;
 
-    public UsersController(IUserService userService, ILogger<UsersController> logger)
+    public UsersController(
+        IUserService userService,
+        IInvitationService invitationService,
+        ILogger<UsersController> logger)
     {
         _userService = userService;
+        _invitationService = invitationService;
         _logger = logger;
     }
 
@@ -64,6 +70,28 @@ public class UsersController : ControllerBase
         {
             _logger.LogError(ex, "Error al invitar usuario");
             return StatusCode(500, new { status = 500, message = "Ocurrió un error al enviar la invitación." });
+        }
+    }
+
+    [HttpPost("accept-invitation")]
+    [AllowAnonymous]
+    public async Task<IActionResult> AcceptInvitation([FromBody] AcceptInvitationRequestDto request)
+    {
+        try
+        {
+            await _invitationService.AcceptAsync(request.Token, request.NewPassword, request.Email);
+            return Ok(new { message = "Cuenta activada con éxito. Ya puedes iniciar sesión." });
+        }
+        catch (AppException ex)
+        {
+            _logger.LogWarning(ex, "Excepción al aceptar invitación: {Message}", ex.Message);
+            return StatusCode(ex.StatusCode, new { status = ex.StatusCode, message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al aceptar invitación. Message={Message}, Inner={Inner}",
+                ex.Message, ex.InnerException?.Message);
+            return StatusCode(500, new { status = 500, message = "Ocurrió un error al aceptar la invitación." });
         }
     }
 

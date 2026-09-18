@@ -2,6 +2,7 @@ using Maros.Application.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Resend;
+using System.Net;
 
 namespace Maros.Infrastructure.ExternalServices;
 
@@ -12,7 +13,8 @@ namespace Maros.Infrastructure.ExternalServices;
 public sealed class ResendEmailService : IEmailService
 {
     private const string DefaultFromEmail = "onboarding@resend.dev";
-    private const string DefaultFromName  = "Maro's Pijamas";
+    private const string ProjectName = "Maro's Pijamas";
+    private const string DefaultFromName  = "Maro's Pijamas - Panel Administrativo";
 
     private readonly IResend  _resend;
     private readonly string   _fromEmail;
@@ -40,7 +42,7 @@ public sealed class ResendEmailService : IEmailService
         var message = new EmailMessage
         {
             From    = $"{_fromName} <{_fromEmail}>",
-            Subject = "Invitación a Maro's Pijamas",
+            Subject = "Activa tu cuenta del panel administrativo de Maro's Pijamas",
             HtmlBody = BuildInvitationHtml(name, acceptUrl),
         };
         message.To.Add(to);
@@ -94,44 +96,56 @@ public sealed class ResendEmailService : IEmailService
     // HTML Builders
     // ──────────────────────────────────────────────────────────────────
 
-    private static string BuildInvitationHtml(string name, string acceptUrl) => $"""
+    private static string BuildInvitationHtml(string name, string acceptUrl)
+    {
+        var safeName = WebUtility.HtmlEncode(string.IsNullOrWhiteSpace(name) ? "equipo" : name);
+        var safeUrl = WebUtility.HtmlEncode(acceptUrl);
+
+        return $"""
         <!DOCTYPE html>
         <html lang="es">
         <head>
           <meta charset="utf-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
-          <title>Invitación a Maro's Pijamas</title>
+          <title>Invitación al panel administrativo de Maro's Pijamas</title>
         </head>
         <body style="margin:0;padding:0;background-color:#f5f0ea;font-family:Arial,Helvetica,sans-serif">
+          <div style="display:none;max-height:0;overflow:hidden;color:transparent">
+            Has recibido una invitación para activar tu cuenta del panel administrativo de Maro's Pijamas.
+          </div>
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
             <tr>
               <td align="center" style="padding:32px 16px">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden">
                   <tr>
                     <td style="background:#4a5833;color:#ffffff;padding:28px 32px">
-                      <p style="margin:0;font-size:22px;font-weight:bold">Maro's Pijamas</p>
+                      <p style="margin:0;font-size:22px;font-weight:bold">{ProjectName}</p>
+                      <p style="margin:6px 0 0;font-size:14px;opacity:0.92">Panel administrativo</p>
                     </td>
                   </tr>
                   <tr>
                     <td style="padding:32px">
-                      <p style="margin:0 0 16px;font-size:16px;color:#1c1917">Hola, <strong>{name}</strong></p>
+                      <p style="margin:0 0 16px;font-size:16px;color:#1c1917">Hola, <strong>{safeName}</strong></p>
                       <p style="margin:0 0 24px;font-size:14px;line-height:1.6;color:#44403c">
-                        Fuiste invitada(o) a unirte al panel administrativo de <strong>Maro's Pijamas</strong>.
-                        Para completar tu registro, crea tu contraseña con el siguiente enlace.
+                        El equipo de <strong>{ProjectName}</strong> creó una cuenta para ti en el panel administrativo.
+                        Para activar el acceso, confirma la invitación y define tu contraseña desde el siguiente botón.
+                      </p>
+                      <p style="margin:0 0 24px;font-size:14px;line-height:1.6;color:#44403c">
+                        Si no esperabas esta invitación, puedes ignorar este mensaje de forma segura.
                       </p>
                       <p style="margin:0 0 24px;text-align:center">
-                        <a href="{acceptUrl}" style="display:inline-block;background:#4a5833;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:bold">Aceptar invitación</a>
+                        <a href="{safeUrl}" style="display:inline-block;background:#4a5833;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:bold">Aceptar invitación</a>
                       </p>
                       <p style="margin:0;font-size:13px;line-height:1.6;color:#78716c">
                         Si el botón no funciona, copia y pega este enlace en tu navegador:<br />
-                        <a href="{acceptUrl}" style="color:#4a5833;word-break:break-all">{acceptUrl}</a>
+                        <a href="{safeUrl}" style="color:#4a5833;word-break:break-all">{safeUrl}</a>
                       </p>
                     </td>
                   </tr>
                   <tr>
                     <td style="background:#f5f0ea;padding:16px 32px">
                       <p style="margin:0;font-size:12px;color:#78716c">
-                        © {DateTime.UtcNow.Year} Maro's Pijamas. Por favor no respondas a este correo.
+                        © {DateTime.UtcNow.Year} {ProjectName}. Este correo fue enviado por una acción administrativa del panel.
                       </p>
                     </td>
                   </tr>
@@ -142,6 +156,7 @@ public sealed class ResendEmailService : IEmailService
         </body>
         </html>
         """;
+    }
 
     private static string BuildCodeHtml(string name, string code, bool isNewEmail)
     {

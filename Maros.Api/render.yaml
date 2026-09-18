@@ -50,5 +50,7 @@ services:
         value: http://localhost:3000
       - key: Cors__AllowedOrigins__3
         value: http://localhost:3001
+      - key: Invitation__FrontendUrl
+        value: https://maros-admin.vercel.app
       - key: Invitation__AcceptUrl
-        value: https://maros-admin.vercel.app/accept-invite
+        value: https://maros-admin.vercel.app/accept-invitation

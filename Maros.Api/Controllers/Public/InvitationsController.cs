@@ -27,7 +27,7 @@ public class PublicInvitationsController : ControllerBase
     [HttpPost("accept")]
     public async Task<IActionResult> Accept([FromBody] AcceptInvitationRequestDto request)
     {
-        await _invitationService.AcceptAsync(request.Token, request.NewPassword);
+        await _invitationService.AcceptAsync(request.Token, request.NewPassword, request.Email);
         return Ok(new { message = "Cuenta activada con éxito. Ya puedes iniciar sesión." });
     }
 }

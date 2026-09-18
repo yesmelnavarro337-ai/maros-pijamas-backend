@@ -24,9 +24,9 @@ public class InvitationService : IInvitationService
         return new InvitationSummaryDto(user.Name, user.Email);
     }
 
-    public async Task AcceptAsync(string token, string newPassword)
+    public async Task AcceptAsync(string token, string newPassword, string? email = null)
     {
-        var user = await FindValidPendingUserAsync(token);
+        var user = await FindValidPendingUserAsync(token, email);
 
         user.PasswordHash = _passwordHasher.Hash(newPassword);
         user.Status = UserStatus.Activo;
@@ -37,10 +37,16 @@ public class InvitationService : IInvitationService
         await _userRepository.SaveChangesAsync();
     }
 
-    private async Task<User> FindValidPendingUserAsync(string token)
+    private async Task<User> FindValidPendingUserAsync(string token, string? email = null)
     {
         var user = await _userRepository.GetByInviteTokenAsync(token)
             ?? throw new AppException("La invitación no existe o ya fue utilizada.", 404);
+
+        if (!string.IsNullOrWhiteSpace(email) &&
+            !string.Equals(user.Email, email, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new AppException("La invitación no corresponde al correo indicado.", 400);
+        }
 
         if (user.InviteTokenExpiresAt.HasValue && user.InviteTokenExpiresAt.Value < DateTime.UtcNow)
             throw new AppException("La invitación expiró. Solicita una nueva al administrador.", 410);
