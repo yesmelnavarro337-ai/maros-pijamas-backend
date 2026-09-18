@@ -103,11 +103,9 @@ public class TestimonialService : ITestimonialService
 
     public async Task RemoveAsync(Guid id)
     {
-        var testimonial = await _repository.GetByIdAsync(id)
-            ?? throw new AppException("Testimonio no encontrado.", 404);
-
-        _repository.Remove(testimonial);
-        await _repository.SaveChangesAsync();
+        var affected = await _repository.DeleteByIdAsync(id);
+        if (affected == 0)
+            throw new AppException("Testimonio no encontrado.", 404);
     }
 
     public async Task<List<TestimonialPublicDto>> GetPublicAsync()

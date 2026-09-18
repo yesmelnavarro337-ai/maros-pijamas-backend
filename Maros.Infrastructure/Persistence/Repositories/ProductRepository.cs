@@ -27,9 +27,9 @@ public class ProductRepository : IProductRepository
     public Task<bool> SlugExistsAsync(string slug, Guid? excludeId = null) =>
         _context.Products.AnyAsync(p => p.Slug == slug && (excludeId == null || p.Id != excludeId));
 
-    public Task<bool> SkuExistsAsync(string sku, Guid? excludeVariantId = null) =>
+    public Task<bool> SkuExistsAsync(string sku, Guid? excludeProductId = null) =>
         _context.ProductVariants.AnyAsync(v =>
-            v.Sku.ToLower() == sku.ToLower() && (excludeVariantId == null || v.Id != excludeVariantId));
+            v.Sku.ToLower() == sku.ToLower() && (excludeProductId == null || v.ProductId != excludeProductId));
 
     public async Task AddAsync(Product product) =>
         await _context.Products.AddAsync(product);

@@ -66,11 +66,9 @@ public class CustomizationOptionService : ICustomizationOptionService
 
     public async Task RemoveAsync(Guid id)
     {
-        var option = await _repository.GetByIdAsync(id)
-            ?? throw new AppException("Opción de personalización no encontrada.", 404);
-
-        _repository.Remove(option);
-        await _repository.SaveChangesAsync();
+        var affected = await _repository.DeleteByIdAsync(id);
+        if (affected == 0)
+            throw new AppException("Opción de personalización no encontrada.", 404);
     }
 
     public async Task<CustomizationCatalogPublicDto> GetPublicCatalogAsync()

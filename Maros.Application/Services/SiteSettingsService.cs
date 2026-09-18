@@ -131,7 +131,8 @@ public class SiteSettingsService : ISiteSettingsService
             settings.SeoMetaDescription,
             settings.SeoSocialImageUrl,
             settings.LegalTermsUrl,
-            settings.LegalPrivacyUrl
+            settings.LegalPrivacyUrl,
+            settings.LegalReturnsPolicy
         );
     }
 

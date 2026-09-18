@@ -78,11 +78,9 @@ public class FaqService : IFaqService
 
     public async Task RemoveAsync(Guid id)
     {
-        var faq = await _repository.GetByIdAsync(id)
-            ?? throw new AppException("Pregunta no encontrada.", 404);
-
-        _repository.Remove(faq);
-        await _repository.SaveChangesAsync();
+        var affected = await _repository.DeleteByIdAsync(id);
+        if (affected == 0)
+            throw new AppException("Pregunta no encontrada.", 404);
     }
 
     public async Task<List<FaqPublicDto>> GetPublicAsync()

@@ -1,7 +1,8 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\Maros.Api"
   ],
-  "SelectedNode": "\\Maros.Application",
+  "SelectedNode": "\\Maros.Api\\appsettings.json",
   "PreviewInSolutionExplorer": false
 }

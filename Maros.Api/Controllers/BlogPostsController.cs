@@ -35,8 +35,11 @@ public class BlogPostsController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error 500 no controlado en GET /api/BlogPosts: {Message}", ex.Message);
-            return StatusCode(500, new { message = "Error interno al procesar publicaciones del blog", error = ex.Message, stackTrace = ex.StackTrace });
+            _logger.LogError(ex,
+                "Error 500 no controlado en GET /api/BlogPosts. Message={Message}; Inner={Inner}",
+                ex.Message,
+                ex.InnerException?.Message);
+            return StatusCode(500, new { message = "Error interno al procesar publicaciones del blog", error = ex.Message, innerError = ex.InnerException?.Message });
         }
     }
 
@@ -55,8 +58,12 @@ public class BlogPostsController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error 500 no controlado en GET /api/BlogPosts/{Id}: {Message}", id, ex.Message);
-            return StatusCode(500, new { message = "Error interno al obtener publicación del blog", error = ex.Message });
+            _logger.LogError(ex,
+                "Error 500 no controlado en GET /api/BlogPosts/{Id}. Message={Message}; Inner={Inner}",
+                id,
+                ex.Message,
+                ex.InnerException?.Message);
+            return StatusCode(500, new { message = "Error interno al obtener publicación del blog", error = ex.Message, innerError = ex.InnerException?.Message });
         }
     }
 
@@ -76,8 +83,11 @@ public class BlogPostsController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error 500 no controlado en POST /api/BlogPosts: {Message}", ex.Message);
-            return StatusCode(500, new { message = "Error interno al crear publicación del blog", error = ex.Message });
+            _logger.LogError(ex,
+                "Error 500 no controlado en POST /api/BlogPosts. Message={Message}; Inner={Inner}",
+                ex.Message,
+                ex.InnerException?.Message);
+            return StatusCode(500, new { message = "Error interno al crear publicación del blog", error = ex.Message, innerError = ex.InnerException?.Message });
         }
     }
 
@@ -97,8 +107,12 @@ public class BlogPostsController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error 500 no controlado en PUT /api/BlogPosts/{Id}: {Message}", id, ex.Message);
-            return StatusCode(500, new { message = "Error interno al actualizar publicación del blog", error = ex.Message });
+            _logger.LogError(ex,
+                "Error 500 no controlado en PUT /api/BlogPosts/{Id}. Message={Message}; Inner={Inner}",
+                id,
+                ex.Message,
+                ex.InnerException?.Message);
+            return StatusCode(500, new { message = "Error interno al actualizar publicación del blog", error = ex.Message, innerError = ex.InnerException?.Message });
         }
     }
 
@@ -118,8 +132,12 @@ public class BlogPostsController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error 500 no controlado en DELETE /api/BlogPosts/{Id}: {Message}", id, ex.Message);
-            return StatusCode(500, new { message = "Error interno al eliminar publicación del blog", error = ex.Message });
+            _logger.LogError(ex,
+                "Error 500 no controlado en DELETE /api/BlogPosts/{Id}. Message={Message}; Inner={Inner}",
+                id,
+                ex.Message,
+                ex.InnerException?.Message);
+            return StatusCode(500, new { message = "Error interno al eliminar publicación del blog", error = ex.Message, innerError = ex.InnerException?.Message });
         }
     }
 }

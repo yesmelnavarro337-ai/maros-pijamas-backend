@@ -10,7 +10,7 @@ public interface IProductRepository
     Task<List<Product>> GetPublicAsync(Guid? categoryId, Guid? collectionId, string? search);
     Task<List<Product>> GetFeaturedHomeAsync();
     Task<bool> SlugExistsAsync(string slug, Guid? excludeId = null);
-    Task<bool> SkuExistsAsync(string sku, Guid? excludeVariantId = null);
+    Task<bool> SkuExistsAsync(string sku, Guid? excludeProductId = null);
     Task AddAsync(Product product);
     void Remove(Product product);
     Task SaveChangesAsync();

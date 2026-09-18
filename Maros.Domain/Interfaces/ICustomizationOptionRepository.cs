@@ -11,5 +11,6 @@ public interface ICustomizationOptionRepository
     Task<CustomizationOption?> GetByIdAsync(Guid id);
     Task AddAsync(CustomizationOption option);
     void Remove(CustomizationOption option);
+    Task<int> DeleteByIdAsync(Guid id);
     Task SaveChangesAsync();
 }

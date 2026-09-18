@@ -16,5 +16,6 @@ public record SiteSettingsPublicDto(
     string SeoMetaDescription,
     string? SeoSocialImageUrl,
     string LegalTermsUrl,
-    string LegalPrivacyUrl
+    string LegalPrivacyUrl,
+    string LegalReturnsPolicy
 );

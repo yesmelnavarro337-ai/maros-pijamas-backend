@@ -27,10 +27,17 @@ public class SettingsController : ControllerBase
     }
 
     [HttpGet]
+    [AllowAnonymous]
     public async Task<IActionResult> Get()
     {
         try
         {
+            if (User.Identity?.IsAuthenticated != true)
+            {
+                var publicSettings = await _settingsService.GetPublicAsync();
+                return Ok(publicSettings);
+            }
+
             var settings = await _settingsService.GetAsync();
             return Ok(settings);
         }
@@ -38,6 +45,22 @@ public class SettingsController : ControllerBase
         {
             _logger.LogError(ex, "Error al obtener la configuración general.");
             return StatusCode(500, new { message = "Error al obtener la configuración del sitio." });
+        }
+    }
+
+    [HttpGet("/api/Configuration")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetPublicConfiguration()
+    {
+        try
+        {
+            var settings = await _settingsService.GetPublicAsync();
+            return Ok(settings);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al obtener la configuración pública.");
+            return StatusCode(500, new { message = "Error al obtener la configuración pública del sitio." });
         }
     }
 

@@ -191,11 +191,10 @@ public class ProductService : IProductService
         product.UpdatedAt = DateTime.UtcNow;
 
         product.Images.Clear();
-        product.Variants.Clear();
         product.ProductCollections.Clear();
 
         ApplyImages(product, request.ImageUrls);
-        ApplyVariants(product, request.Variants);
+        UpdateVariantsInPlace(product, request.Variants);
         ApplyCollections(product, request.CollectionIds);
 
         await _productRepository.SaveChangesAsync();
@@ -292,14 +291,9 @@ public class ProductService : IProductService
             if (!seen.Add(sku))
                 throw new AppException($"El SKU '{sku}' está repetido dentro del mismo producto. Por favor ingresa o genera uno distinto.", 400);
 
-            if (await _productRepository.SkuExistsAsync(sku))
+            if (await _productRepository.SkuExistsAsync(sku, excludeProductId))
             {
-                var belongsToSameProduct = excludeProductId.HasValue && excludeProductId.Value != Guid.Empty &&
-                    (await _productRepository.GetByIdAsync(excludeProductId.Value))?
-                        .Variants.Any(v => v.Sku.Equals(sku, StringComparison.OrdinalIgnoreCase)) == true;
-
-                if (!belongsToSameProduct)
-                    throw new AppException($"El SKU '{sku}' ya está en uso. Por favor ingresa o genera uno distinto.", 409);
+                throw new AppException($"El SKU '{sku}' ya está en uso por otro producto. Por favor ingresa o genera uno distinto.", 409);
             }
         }
     }
@@ -340,6 +334,53 @@ public class ProductService : IProductService
                 Stock = v.Stock,
                 ImageUrl = v.ImageUrl,
             });
+        }
+    }
+
+    private static void UpdateVariantsInPlace(Product product, List<ProductVariantInputDto> requestVariants)
+    {
+        var existingList = product.Variants.ToList();
+        var matchedExistingIds = new HashSet<Guid>();
+
+        foreach (var r in requestVariants)
+        {
+            var existing = product.Variants.FirstOrDefault(v =>
+                v.Sku.Equals(r.Sku, StringComparison.OrdinalIgnoreCase)) ??
+                product.Variants.FirstOrDefault(v =>
+                    v.Size.Equals(r.Size, StringComparison.OrdinalIgnoreCase) &&
+                    v.ColorName.Equals(r.ColorName, StringComparison.OrdinalIgnoreCase));
+
+            if (existing != null)
+            {
+                existing.Size = r.Size;
+                existing.ColorName = r.ColorName;
+                existing.ColorHex = r.ColorHex;
+                existing.Sku = r.Sku;
+                existing.Stock = r.Stock;
+                existing.ImageUrl = r.ImageUrl;
+                existing.UpdatedAt = DateTime.UtcNow;
+                matchedExistingIds.Add(existing.Id);
+            }
+            else
+            {
+                product.Variants.Add(new ProductVariant
+                {
+                    Size = r.Size,
+                    ColorName = r.ColorName,
+                    ColorHex = r.ColorHex,
+                    Sku = r.Sku,
+                    Stock = r.Stock,
+                    ImageUrl = r.ImageUrl,
+                });
+            }
+        }
+
+        foreach (var existing in existingList)
+        {
+            if (!matchedExistingIds.Contains(existing.Id))
+            {
+                product.Variants.Remove(existing);
+            }
         }
     }
 

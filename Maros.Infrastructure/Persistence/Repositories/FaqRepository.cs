@@ -36,6 +36,9 @@ public class FaqRepository : IFaqRepository
     public void Remove(Faq faq) =>
         _context.Faqs.Remove(faq);
 
+    public Task<int> DeleteByIdAsync(Guid id) =>
+        _context.Faqs.Where(f => f.Id == id).ExecuteDeleteAsync();
+
     public Task SaveChangesAsync() =>
         _context.SaveChangesAsync();
 }

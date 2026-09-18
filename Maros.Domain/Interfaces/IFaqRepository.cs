@@ -10,5 +10,6 @@ public interface IFaqRepository
     Task<int> GetNextOrderAsync();
     Task AddAsync(Faq faq);
     void Remove(Faq faq);
+    Task<int> DeleteByIdAsync(Guid id);
     Task SaveChangesAsync();
 }

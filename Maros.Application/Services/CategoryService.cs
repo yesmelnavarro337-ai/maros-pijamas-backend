@@ -86,6 +86,7 @@ public class CategoryService : ICategoryService
         if (await _categoryRepository.HasProductsAsync(id))
             throw new AppException("No se puede eliminar: hay productos asignados a esta categoría.", 409);
 
+        await _categoryRepository.ClearProductReferencesAsync(id);
         _categoryRepository.Remove(category);
         await _categoryRepository.SaveChangesAsync();
     }

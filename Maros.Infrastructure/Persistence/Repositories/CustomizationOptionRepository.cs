@@ -30,6 +30,9 @@ public class CustomizationOptionRepository : ICustomizationOptionRepository
     public void Remove(CustomizationOption option) =>
         _context.CustomizationOptions.Remove(option);
 
+    public Task<int> DeleteByIdAsync(Guid id) =>
+        _context.CustomizationOptions.Where(o => o.Id == id).ExecuteDeleteAsync();
+
     public Task SaveChangesAsync() =>
         _context.SaveChangesAsync();
 }

@@ -21,7 +21,7 @@ public class CategoryRepository : ICategoryRepository
             .Select(c => new
             {
                 Category = c,
-                ProductsCount = c.Products != null ? c.Products.Count : 0
+                ProductsCount = _context.Products.Count(p => p.CategoryId == c.Id && !p.IsDeleted)
             })
             .ToListAsync();
 
@@ -38,7 +38,7 @@ public class CategoryRepository : ICategoryRepository
             .Select(c => new
             {
                 Category = c,
-                ProductsCount = c.Products != null ? c.Products.Count : 0
+                ProductsCount = _context.Products.Count(p => p.CategoryId == c.Id && !p.IsDeleted)
             })
             .FirstOrDefaultAsync();
 
@@ -50,7 +50,13 @@ public class CategoryRepository : ICategoryRepository
         _context.Categories.AnyAsync(c => c.Slug == slug && (excludeId == null || c.Id != excludeId));
 
     public Task<bool> HasProductsAsync(Guid categoryId) =>
-        _context.Products.AnyAsync(p => p.CategoryId == categoryId);
+        _context.Products.AnyAsync(p => p.CategoryId == categoryId && !p.IsDeleted);
+
+    public Task ClearProductReferencesAsync(Guid categoryId) =>
+        _context.Products
+            .IgnoreQueryFilters()
+            .Where(p => p.CategoryId == categoryId)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(p => p.CategoryId, (Guid?)null));
 
     public async Task AddAsync(Category category) =>
         await _context.Categories.AddAsync(category);

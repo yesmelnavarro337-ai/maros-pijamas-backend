@@ -43,13 +43,19 @@ public class SeasonService : ISeasonService
 
         await ValidateFeaturedProductsBelongToCollectionAsync(collection, request.FeaturedProductIds);
 
+        var status = ParseStatusOrDefault(request.Status, SeasonStatus.Borrador);
+        if (status == SeasonStatus.Activa)
+        {
+            await _seasonRepository.DeactivateAllExceptAsync(Guid.Empty);
+        }
+
         var season = new Season
         {
             Name = request.Name,
             Slug = slug,
             StartDate = request.StartDate,
             EndDate = request.EndDate,
-            Status = SeasonStatus.Borrador, // toda temporada nueva nace en Borrador
+            Status = status,
             CollectionId = request.CollectionId,
             HeroTitle = request.HeroTitle,
             HeroSubtitle = request.HeroSubtitle,
@@ -85,10 +91,17 @@ public class SeasonService : ISeasonService
 
         await ValidateFeaturedProductsBelongToCollectionAsync(collection, request.FeaturedProductIds);
 
+        var status = ParseStatusOrDefault(request.Status, season.Status);
+        if (status == SeasonStatus.Activa)
+        {
+            await _seasonRepository.DeactivateAllExceptAsync(id);
+        }
+
         season.Name = request.Name;
         season.Slug = slug;
         season.StartDate = request.StartDate;
         season.EndDate = request.EndDate;
+        season.Status = status;
         season.CollectionId = request.CollectionId;
         season.HeroTitle = request.HeroTitle;
         season.HeroSubtitle = request.HeroSubtitle;
@@ -101,8 +114,7 @@ public class SeasonService : ISeasonService
         season.CtaLink = request.CtaLink;
         season.UpdatedAt = DateTime.UtcNow;
 
-        season.FeaturedProducts.Clear();
-        ApplyFeaturedProducts(season, request.FeaturedProductIds);
+        SyncFeaturedProducts(season, request.FeaturedProductIds);
 
         await _seasonRepository.SaveChangesAsync();
 
@@ -197,6 +209,17 @@ public class SeasonService : ISeasonService
         return Task.CompletedTask;
     }
 
+    private static SeasonStatus ParseStatusOrDefault(string? input, SeasonStatus fallback)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+            return fallback;
+
+        if (!Enum.TryParse<SeasonStatus>(input, ignoreCase: true, out var status))
+            throw new AppException("Estado de temporada inválido.", 400);
+
+        return status;
+    }
+
     private static void ApplyFeaturedProducts(Season season, List<Guid> productIds)
     {
         foreach (var productId in productIds.Distinct())
@@ -206,6 +229,33 @@ public class SeasonService : ISeasonService
                 SeasonId = season.Id,
                 ProductId = productId,
             });
+        }
+    }
+
+    private static void SyncFeaturedProducts(Season season, List<Guid> productIds)
+    {
+        var desiredIds = productIds.Distinct().ToHashSet();
+        var existing = season.FeaturedProducts.ToList();
+
+        foreach (var featured in existing)
+        {
+            if (!desiredIds.Contains(featured.ProductId))
+            {
+                season.FeaturedProducts.Remove(featured);
+            }
+        }
+
+        var currentIds = season.FeaturedProducts.Select(fp => fp.ProductId).ToHashSet();
+        foreach (var productId in desiredIds)
+        {
+            if (!currentIds.Contains(productId))
+            {
+                season.FeaturedProducts.Add(new SeasonFeaturedProduct
+                {
+                    SeasonId = season.Id,
+                    ProductId = productId,
+                });
+            }
         }
     }
 

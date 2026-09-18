@@ -103,19 +103,25 @@ public sealed class SmtpEmailService : IEmailService
         var username = Resolve(_configuration["Smtp:Username"], Resolve(_configuration["Smtp:SenderEmail"], DefaultFrom));
         var rawPassword = _configuration["Smtp:Password"] ?? string.Empty;
         var password = rawPassword.Replace(" ", "").Trim();
+        var timeoutStr = _configuration["Smtp:TimeoutMilliseconds"];
+        var timeoutMilliseconds = int.TryParse(timeoutStr, out var configuredTimeout) && configuredTimeout > 0
+            ? configuredTimeout
+            : 10_000;
 
         using var client = new SmtpClient();
+        client.Timeout = timeoutMilliseconds;
 
         // Conexión segura con STARTTLS para el puerto 587
-        await client.ConnectAsync(host, port, SecureSocketOptions.StartTls);
+        using var cts = new CancellationTokenSource(timeoutMilliseconds);
+        await client.ConnectAsync(host, port, SecureSocketOptions.StartTls, cts.Token);
 
         if (!string.IsNullOrWhiteSpace(username) && !string.IsNullOrWhiteSpace(password))
         {
-            await client.AuthenticateAsync(username, password);
+            await client.AuthenticateAsync(username, password, cts.Token);
         }
 
-        await client.SendAsync(message);
-        await client.DisconnectAsync(true);
+        await client.SendAsync(message, cts.Token);
+        await client.DisconnectAsync(true, cts.Token);
     }
 
     private static string Resolve(string? value, string fallback) =>

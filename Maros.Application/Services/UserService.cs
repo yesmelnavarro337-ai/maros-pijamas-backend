@@ -6,6 +6,7 @@ using Maros.Application.Options;
 using Maros.Domain.Entities;
 using Maros.Domain.Enums;
 using Maros.Domain.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -15,22 +16,22 @@ public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
     private readonly IPasswordHasher _passwordHasher;
-    private readonly IEmailService _emailService;
     private readonly ILogger<UserService> _logger;
     private readonly IOptions<InvitationOptions> _invitationOptions;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
 
     public UserService(
         IUserRepository userRepository,
         IPasswordHasher passwordHasher,
-        IEmailService emailService,
         ILogger<UserService> logger,
-        IOptions<InvitationOptions> invitationOptions)
+        IOptions<InvitationOptions> invitationOptions,
+        IServiceScopeFactory serviceScopeFactory)
     {
         _userRepository = userRepository;
         _passwordHasher = passwordHasher;
-        _emailService = emailService;
         _logger = logger;
         _invitationOptions = invitationOptions;
+        _serviceScopeFactory = serviceScopeFactory;
     }
 
     public async Task<UserListResponseDto> GetAllAsync()
@@ -73,29 +74,34 @@ public class UserService : IUserService
         await _userRepository.AddAsync(user);
         await _userRepository.SaveChangesAsync();
 
-        await SendInvitationEmailAsync(user);
+        QueueInvitationEmail(user.Email, user.Name, user.InviteToken);
 
         return ToDto(user);
     }
 
-    private async Task SendInvitationEmailAsync(User user)
+    private void QueueInvitationEmail(string email, string name, string? inviteToken)
     {
-        if (string.IsNullOrWhiteSpace(user.InviteToken))
+        if (string.IsNullOrWhiteSpace(inviteToken))
             return;
 
         var baseUrl = _invitationOptions.Value.AcceptUrl.TrimEnd('/');
-        var acceptUrl = $"{baseUrl}?token={Uri.EscapeDataString(user.InviteToken)}";
+        var acceptUrl = $"{baseUrl}?token={Uri.EscapeDataString(inviteToken)}";
 
-        try
+        _ = Task.Run(async () =>
         {
-            await _emailService.SendInvitationAsync(user.Email, user.Name, acceptUrl);
-        }
-        catch (Exception ex)
-        {
-            // El usuario ya quedó creado con estado "Pendiente"; un fallo al
-            // enviar el correo no debe convertir la invitación en un error 500.
-            _logger.LogWarning(ex, "No se pudo enviar el correo de invitación a {Email}. Enlace: {AcceptUrl}", user.Email, acceptUrl);
-        }
+            try
+            {
+                using var scope = _serviceScopeFactory.CreateScope();
+                var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
+                await emailService.SendInvitationAsync(email, name, acceptUrl);
+            }
+            catch (Exception ex)
+            {
+                // El usuario ya quedó creado con estado "Pendiente"; un fallo al
+                // enviar el correo no debe convertir la invitación en un error 500.
+                _logger.LogWarning(ex, "No se pudo enviar el correo de invitación a {Email}. Enlace: {AcceptUrl}", email, acceptUrl);
+            }
+        });
     }
 
     private static string GenerateInviteToken()

@@ -7,6 +7,6 @@ public record BlogPostUpdateDto(
     [Required, MaxLength(60)] string Category,
     string? CoverImageUrl,
     [Required] string Content,
-    [Required] string Status,
-    [Required] DateTime PublishDate
+    string? Status,
+    DateTime? PublishDate
 );

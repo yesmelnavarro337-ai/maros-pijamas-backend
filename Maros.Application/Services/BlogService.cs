@@ -4,6 +4,7 @@ using Maros.Application.Interfaces;
 using Maros.Domain.Entities;
 using Maros.Domain.Enums;
 using Maros.Domain.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace Maros.Application.Services;
 
@@ -11,11 +12,16 @@ public class BlogService : IBlogService
 {
     private readonly IBlogPostRepository _repository;
     private readonly IPaginationService _paginationService;
+    private readonly ILogger<BlogService> _logger;
 
-    public BlogService(IBlogPostRepository repository, IPaginationService paginationService)
+    public BlogService(
+        IBlogPostRepository repository,
+        IPaginationService paginationService,
+        ILogger<BlogService> logger)
     {
         _repository = repository;
         _paginationService = paginationService;
+        _logger = logger;
     }
 
     public async Task<PagedResult<BlogPostResponseDto>> GetAllAsync(BlogQueryParams query)
@@ -73,32 +79,52 @@ public class BlogService : IBlogService
 
     public async Task<BlogPostResponseDto> CreateAsync(BlogPostCreateDto request)
     {
-        if (request == null)
-            throw new AppException("Datos de entrada requeridos.", 400);
-
-        var status = ParseStatus(request.Status);
-        var slug = SlugGenerator.Generate(request.Title ?? string.Empty);
-
-        if (await _repository.SlugExistsAsync(slug))
+        try
         {
-            slug = $"{slug}-{Guid.NewGuid().ToString()[..4]}";
+            if (request == null)
+                throw new AppException("Datos de entrada requeridos.", 400);
+
+            var title = string.IsNullOrWhiteSpace(request.Title)
+                ? "Nueva publicación"
+                : request.Title.Trim();
+            var category = string.IsNullOrWhiteSpace(request.Category)
+                ? "General"
+                : request.Category.Trim();
+            var content = string.IsNullOrWhiteSpace(request.Content)
+                ? "Próximamente..."
+                : request.Content.Trim();
+            var status = ParseStatus(request.Status);
+            var slug = await GenerateUniqueSlugAsync(title);
+            var coverImageUrl = NormalizeCloudinaryUrl(request.CoverImageUrl);
+
+            var post = new BlogPost
+            {
+                Title = title,
+                Slug = slug,
+                Category = category,
+                CoverImageUrl = coverImageUrl,
+                Content = content,
+                Status = status,
+                PublishDate = request.PublishDate ?? DateTime.UtcNow,
+            };
+
+            await _repository.AddAsync(post);
+            await _repository.SaveChangesAsync();
+
+            return ToDto(post);
         }
-
-        var post = new BlogPost
+        catch (AppException)
         {
-            Title = request.Title ?? string.Empty,
-            Slug = slug,
-            Category = request.Category ?? string.Empty,
-            CoverImageUrl = request.CoverImageUrl,
-            Content = request.Content ?? string.Empty,
-            Status = status,
-            PublishDate = request.PublishDate,
-        };
-
-        await _repository.AddAsync(post);
-        await _repository.SaveChangesAsync();
-
-        return ToDto(post);
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Error creando BlogPost. Message={Message}; Inner={Inner}",
+                ex.Message,
+                ex.InnerException?.Message);
+            throw;
+        }
     }
 
     public async Task<BlogPostResponseDto> UpdateAsync(Guid id, BlogPostUpdateDto request)
@@ -110,20 +136,15 @@ public class BlogService : IBlogService
             ?? throw new AppException("Artículo no encontrado.", 404);
 
         var status = ParseStatus(request.Status);
-        var slug = SlugGenerator.Generate(request.Title ?? string.Empty);
-
-        if (await _repository.SlugExistsAsync(slug, excludeId: id))
-        {
-            slug = $"{slug}-{Guid.NewGuid().ToString()[..4]}";
-        }
+        var slug = await GenerateUniqueSlugAsync(request.Title ?? post.Title, id);
 
         post.Title = request.Title ?? string.Empty;
         post.Slug = slug;
         post.Category = request.Category ?? string.Empty;
-        post.CoverImageUrl = request.CoverImageUrl;
+        post.CoverImageUrl = NormalizeCloudinaryUrl(request.CoverImageUrl);
         post.Content = request.Content ?? string.Empty;
         post.Status = status;
-        post.PublishDate = request.PublishDate;
+        post.PublishDate = request.PublishDate ?? post.PublishDate;
         post.UpdatedAt = DateTime.UtcNow;
 
         await _repository.SaveChangesAsync();
@@ -159,6 +180,37 @@ public class BlogService : IBlogService
         if (string.IsNullOrWhiteSpace(input) || !Enum.TryParse<BlogStatus>(input, ignoreCase: true, out var status))
             return BlogStatus.Borrador;
         return status;
+    }
+
+    private async Task<string> GenerateUniqueSlugAsync(string title, Guid? excludeId = null)
+    {
+        var slug = SlugGenerator.Generate(title);
+        if (string.IsNullOrWhiteSpace(slug))
+        {
+            slug = $"blog-{DateTime.UtcNow:yyyyMMddHHmmss}";
+        }
+
+        if (await _repository.SlugExistsAsync(slug, excludeId))
+        {
+            slug = $"{slug}-{Guid.NewGuid().ToString()[..4]}";
+        }
+
+        return slug;
+    }
+
+    private static string? NormalizeCloudinaryUrl(string? coverImageUrl)
+    {
+        if (string.IsNullOrWhiteSpace(coverImageUrl))
+            return null;
+
+        var trimmed = coverImageUrl.Trim();
+        if (!Uri.TryCreate(trimmed, UriKind.Absolute, out var uri))
+            throw new AppException("La imagen principal del blog debe ser una URL absoluta válida.", 400);
+
+        if (!uri.Host.EndsWith("cloudinary.com", StringComparison.OrdinalIgnoreCase))
+            throw new AppException("La imagen principal del blog debe subirse primero a Cloudinary.", 400);
+
+        return trimmed;
     }
 
     private static BlogPostResponseDto ToDto(BlogPost p) => new(

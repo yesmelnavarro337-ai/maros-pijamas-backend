@@ -60,6 +60,9 @@ public class TestimonialRepository : ITestimonialRepository
     public void Remove(Testimonial testimonial) =>
         _context.Testimonials.Remove(testimonial);
 
+    public Task<int> DeleteByIdAsync(Guid id) =>
+        _context.Testimonials.Where(t => t.Id == id).ExecuteDeleteAsync();
+
     public Task SaveChangesAsync() =>
         _context.SaveChangesAsync();
 }

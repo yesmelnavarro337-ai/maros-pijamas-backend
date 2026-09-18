@@ -11,5 +11,6 @@ public interface ITestimonialRepository
     Task<List<Testimonial>> GetPublicAsync();
     Task AddAsync(Testimonial testimonial);
     void Remove(Testimonial testimonial);
+    Task<int> DeleteByIdAsync(Guid id);
     Task SaveChangesAsync();
 }
