@@ -1,4 +1,5 @@
 using Maros.Domain.Entities;
+using System.Linq.Expressions;
 
 namespace Maros.Domain.Interfaces;
 
@@ -13,5 +14,9 @@ public interface IProductRepository
     Task<bool> SkuExistsAsync(string sku, Guid? excludeProductId = null);
     Task AddAsync(Product product);
     void Remove(Product product);
+    void RemoveVariantsRange(IEnumerable<ProductVariant> variants);
+    void RemoveImagesRange(IEnumerable<ProductImage> images);
+    void RemoveProductCategoriesRange(IEnumerable<ProductCategory> productCategories);
+    void RemoveProductCollectionsRange(IEnumerable<ProductCollection> productCollections);
     Task SaveChangesAsync();
 }

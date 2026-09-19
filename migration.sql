@@ -185,7 +185,6 @@ CREATE TABLE "Products" (
     "Id" uuid NOT NULL,
     "Name" character varying(200) NOT NULL,
     "Slug" character varying(220) NOT NULL,
-    "CategoryId" uuid NOT NULL,
     "Description" text NOT NULL,
     "BasePrice" numeric(12,2) NOT NULL,
     "Status" character varying(20) NOT NULL,
@@ -200,8 +199,7 @@ CREATE TABLE "Products" (
     "SeoAltText" text,
     "CreatedAt" timestamp with time zone NOT NULL,
     "UpdatedAt" timestamp with time zone,
-    CONSTRAINT "PK_Products" PRIMARY KEY ("Id"),
-    CONSTRAINT "FK_Products_Categories_CategoryId" FOREIGN KEY ("CategoryId") REFERENCES "Categories" ("Id") ON DELETE RESTRICT
+    CONSTRAINT "PK_Products" PRIMARY KEY ("Id")
 );
 
 CREATE TABLE "Seasons" (
@@ -244,6 +242,14 @@ CREATE TABLE "ProductCollections" (
     CONSTRAINT "PK_ProductCollections" PRIMARY KEY ("ProductId", "CollectionId"),
     CONSTRAINT "FK_ProductCollections_Collections_CollectionId" FOREIGN KEY ("CollectionId") REFERENCES "Collections" ("Id") ON DELETE CASCADE,
     CONSTRAINT "FK_ProductCollections_Products_ProductId" FOREIGN KEY ("ProductId") REFERENCES "Products" ("Id") ON DELETE CASCADE
+);
+
+CREATE TABLE "ProductCategories" (
+    "ProductId" uuid NOT NULL,
+    "CategoryId" uuid NOT NULL,
+    CONSTRAINT "PK_ProductCategories" PRIMARY KEY ("ProductId", "CategoryId"),
+    CONSTRAINT "FK_ProductCategories_Categories_CategoryId" FOREIGN KEY ("CategoryId") REFERENCES "Categories" ("Id") ON DELETE CASCADE,
+    CONSTRAINT "FK_ProductCategories_Products_ProductId" FOREIGN KEY ("ProductId") REFERENCES "Products" ("Id") ON DELETE CASCADE
 );
 
 CREATE TABLE "ProductImages" (
@@ -340,11 +346,11 @@ CREATE UNIQUE INDEX "IX_Categories_Slug" ON "Categories" ("Slug");
 
 CREATE UNIQUE INDEX "IX_PageHeaders_PageKey" ON "PageHeaders" ("PageKey");
 
+CREATE INDEX "IX_ProductCategories_CategoryId" ON "ProductCategories" ("CategoryId");
+
 CREATE INDEX "IX_ProductCollections_CollectionId" ON "ProductCollections" ("CollectionId");
 
 CREATE INDEX "IX_ProductImages_ProductId" ON "ProductImages" ("ProductId");
-
-CREATE INDEX "IX_Products_CategoryId" ON "Products" ("CategoryId");
 
 CREATE INDEX "IX_Products_IsDeleted" ON "Products" ("IsDeleted");
 

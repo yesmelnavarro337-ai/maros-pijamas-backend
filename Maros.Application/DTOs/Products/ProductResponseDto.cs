@@ -1,3 +1,5 @@
+using Maros.Application.DTOs.Categories;
+
 namespace Maros.Application.DTOs.Products;
 
 public record ProductResponseDto(
@@ -6,6 +8,8 @@ public record ProductResponseDto(
     string Slug,
     Guid? CategoryId,
     string CategoryName,
+    List<Guid> CategoryIds,
+    List<CategorySummaryDto> Categories,
     string Description,
     decimal BasePrice,
     string Status,

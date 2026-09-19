@@ -11,6 +11,7 @@ public class MarosDbContext : DbContext
     public DbSet<UserAuditLog> UserAuditLogs => Set<UserAuditLog>();
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<Product> Products => Set<Product>();
+    public DbSet<ProductCategory> ProductCategories => Set<ProductCategory>();
     public DbSet<ProductImage> ProductImages => Set<ProductImage>();
     public DbSet<ProductVariant> ProductVariants => Set<ProductVariant>();
     public DbSet<Collection> Collections => Set<Collection>();

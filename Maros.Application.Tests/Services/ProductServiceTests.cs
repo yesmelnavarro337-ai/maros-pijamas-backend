@@ -28,17 +28,26 @@ public class ProductServiceTests
         var category = new Category { Id = Guid.NewGuid() };
         _categoryRepository.Setup(r => r.GetByIdAsync(category.Id)).ReturnsAsync(category);
 
-        var request = new ProductCreateDto(
-            "Pijama Test", category.Id, "Descripción", 100000, "Activo",
-            false, true, "5-7 días", "SEO", "SEO desc", null, null,
-            new List<string>(),
-            new List<ProductVariantInputDto>
+        var request = new ProductCreateDto
+        {
+            Name = "Pijama Test",
+            CategoryIds = new List<Guid> { category.Id },
+            Description = "Descripción",
+            BasePrice = 100000,
+            Status = "Activo",
+            FeaturedHome = false,
+            AllowCustomization = true,
+            DeliveryTime = "5-7 días",
+            SeoTitle = "SEO",
+            SeoDescription = "SEO desc",
+            ImageUrls = new List<string>(),
+            Variants = new List<ProductVariantInputDto>
             {
                 new("S", "Beige", "#EFE8D8", "SKU-REPETIDO", 5, null),
                 new("M", "Beige", "#EFE8D8", "SKU-REPETIDO", 5, null), // mismo SKU, dos veces
             },
-            new List<Guid>()
-        );
+            CollectionIds = new List<Guid>()
+        };
 
         var ex = await Assert.ThrowsAsync<AppException>(() => _sut.CreateAsync(request));
         Assert.Contains("repetido", ex.Message);
@@ -51,13 +60,22 @@ public class ProductServiceTests
         _categoryRepository.Setup(r => r.GetByIdAsync(category.Id)).ReturnsAsync(category);
         _productRepository.Setup(r => r.SkuExistsAsync("SKU-EXISTENTE", null)).ReturnsAsync(true);
 
-        var request = new ProductCreateDto(
-            "Pijama Test", category.Id, "Descripción", 100000, "Activo",
-            false, true, "5-7 días", "SEO", "SEO desc", null, null,
-            new List<string>(),
-            new List<ProductVariantInputDto> { new("S", "Beige", "#EFE8D8", "SKU-EXISTENTE", 5, null) },
-            new List<Guid>()
-        );
+        var request = new ProductCreateDto
+        {
+            Name = "Pijama Test",
+            CategoryIds = new List<Guid> { category.Id },
+            Description = "Descripción",
+            BasePrice = 100000,
+            Status = "Activo",
+            FeaturedHome = false,
+            AllowCustomization = true,
+            DeliveryTime = "5-7 días",
+            SeoTitle = "SEO",
+            SeoDescription = "SEO desc",
+            ImageUrls = new List<string>(),
+            Variants = new List<ProductVariantInputDto> { new("S", "Beige", "#EFE8D8", "SKU-EXISTENTE", 5, null) },
+            CollectionIds = new List<Guid>()
+        };
 
         var ex = await Assert.ThrowsAsync<AppException>(() => _sut.CreateAsync(request));
         Assert.Equal(409, ex.StatusCode);
@@ -68,11 +86,22 @@ public class ProductServiceTests
     {
         _categoryRepository.Setup(r => r.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync((Category?)null);
 
-        var request = new ProductCreateDto(
-            "Pijama Test", Guid.NewGuid(), "Descripción", 100000, "Activo",
-            false, true, "5-7 días", "SEO", "SEO desc", null, null,
-            new List<string>(), new List<ProductVariantInputDto>(), new List<Guid>()
-        );
+        var request = new ProductCreateDto
+        {
+            Name = "Pijama Test",
+            CategoryIds = new List<Guid> { Guid.NewGuid() },
+            Description = "Descripción",
+            BasePrice = 100000,
+            Status = "Activo",
+            FeaturedHome = false,
+            AllowCustomization = true,
+            DeliveryTime = "5-7 días",
+            SeoTitle = "SEO",
+            SeoDescription = "SEO desc",
+            ImageUrls = new List<string>(),
+            Variants = new List<ProductVariantInputDto>(),
+            CollectionIds = new List<Guid>()
+        };
 
         var ex = await Assert.ThrowsAsync<AppException>(() => _sut.CreateAsync(request));
         Assert.Equal(400, ex.StatusCode);

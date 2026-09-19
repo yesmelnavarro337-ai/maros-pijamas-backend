@@ -11,5 +11,10 @@ public class CategoryConfiguration : IEntityTypeConfiguration<Category>
         builder.Property(c => c.Name).IsRequired().HasMaxLength(100);
         builder.Property(c => c.Slug).IsRequired().HasMaxLength(120);
         builder.HasIndex(c => c.Slug).IsUnique();
+
+        builder.HasMany(c => c.ProductCategories)
+            .WithOne(pc => pc.Category)
+            .HasForeignKey(pc => pc.CategoryId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

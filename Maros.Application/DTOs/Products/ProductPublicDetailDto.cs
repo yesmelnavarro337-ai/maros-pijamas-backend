@@ -1,3 +1,5 @@
+using Maros.Application.DTOs.Categories;
+
 namespace Maros.Application.DTOs.Products;
 
 public record ProductPublicDetailDto(
@@ -8,6 +10,8 @@ public record ProductPublicDetailDto(
     decimal BasePrice,
     string CategoryName,
     Guid? CategoryId,
+    List<Guid> CategoryIds,
+    List<CategorySummaryDto> Categories,
     List<string> Images,
     List<string> Sizes,
     List<ProductColorPublicDto> Colors,

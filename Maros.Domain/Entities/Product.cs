@@ -7,8 +7,6 @@ public class Product : BaseEntity
 {
     public string Name { get; set; } = string.Empty;
     public string Slug { get; set; } = string.Empty;
-    public Guid? CategoryId { get; set; }
-    public Category? Category { get; set; }
     public string Description { get; set; } = string.Empty;
     public decimal BasePrice { get; set; }
     public ProductStatus Status { get; set; } = ProductStatus.Borrador;
@@ -26,5 +24,6 @@ public class Product : BaseEntity
 
     public ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
     public ICollection<ProductVariant> Variants { get; set; } = new List<ProductVariant>();
+    public ICollection<ProductCategory> ProductCategories { get; set; } = new List<ProductCategory>();
     public ICollection<ProductCollection> ProductCollections { get; set; } = new List<ProductCollection>();
 }

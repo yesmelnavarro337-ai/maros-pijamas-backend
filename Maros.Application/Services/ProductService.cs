@@ -1,4 +1,5 @@
 using Maros.Application.Common;
+using Maros.Application.DTOs.Categories;
 using Maros.Application.DTOs.Products;
 using Maros.Application.Interfaces;
 using Maros.Domain.Entities;
@@ -31,7 +32,7 @@ public class ProductService : IProductService
         var products = _productRepository.QueryAll().Where(p => !p.IsDeleted);
 
         if (query.CategoryId.HasValue)
-            products = products.Where(p => p.CategoryId == query.CategoryId.Value);
+            products = products.Where(p => p.ProductCategories.Any(pc => pc.CategoryId == query.CategoryId.Value));
 
         if (!string.IsNullOrWhiteSpace(query.Status) &&
             !query.Status.Equals("all", StringComparison.OrdinalIgnoreCase) &&
@@ -123,7 +124,7 @@ public class ProductService : IProductService
 
     public async Task<ProductResponseDto> CreateAsync(ProductCreateDto request)
     {
-        await ValidateCategoryAsync(request.CategoryId);
+        await ValidateCategoriesAsync(request.CategoryIds);
         ValidateStatus(request.Status, out var status);
         await ProcessAndValidateVariantSkusAsync(request.Variants, excludeProductId: null);
 
@@ -135,7 +136,6 @@ public class ProductService : IProductService
         {
             Name = request.Name,
             Slug = slug,
-            CategoryId = request.CategoryId,
             Description = request.Description,
             BasePrice = request.BasePrice,
             Status = status,
@@ -151,6 +151,7 @@ public class ProductService : IProductService
 
         ApplyImages(product, request.ImageUrls);
         ApplyVariants(product, request.Variants);
+        ApplyProductCategories(product, request.CategoryIds);
         ApplyCollections(product, request.CollectionIds);
 
         await _productRepository.AddAsync(product);
@@ -166,7 +167,7 @@ public class ProductService : IProductService
         var product = await _productRepository.GetByIdAsync(id)
             ?? throw new AppException("Producto no encontrado.", 404);
 
-        await ValidateCategoryAsync(request.CategoryId);
+        await ValidateCategoriesAsync(request.CategoryIds);
         ValidateStatus(request.Status, out var status);
         await ProcessAndValidateVariantSkusAsync(request.Variants, excludeProductId: id);
 
@@ -174,9 +175,10 @@ public class ProductService : IProductService
         if (await _productRepository.SlugExistsAsync(slug, excludeId: id))
             throw new AppException("Ya existe otro producto con un nombre equivalente.", 409);
 
+        var now = DateTime.UtcNow;
+
         product.Name = request.Name;
         product.Slug = slug;
-        product.CategoryId = request.CategoryId;
         product.Description = request.Description;
         product.BasePrice = request.BasePrice;
         product.Status = status;
@@ -188,14 +190,12 @@ public class ProductService : IProductService
         product.SeoSlug = slug;
         product.SeoSocialImageUrl = request.SeoSocialImageUrl;
         product.SeoAltText = request.SeoAltText;
-        product.UpdatedAt = DateTime.UtcNow;
+        product.UpdatedAt = now;
 
-        product.Images.Clear();
-        product.ProductCollections.Clear();
-
-        ApplyImages(product, request.ImageUrls);
-        UpdateVariantsInPlace(product, request.Variants);
-        ApplyCollections(product, request.CollectionIds);
+        SyncImages(product, request.ImageUrls, _productRepository, now);
+        SyncVariants(product, request.Variants, _productRepository, now);
+        SyncProductCategories(product, request.CategoryIds, _productRepository);
+        SyncProductCollections(product, request.CollectionIds, _productRepository);
 
         await _productRepository.SaveChangesAsync();
 
@@ -250,11 +250,11 @@ public class ProductService : IProductService
         return order(query);
     }
 
-    private async Task ValidateCategoryAsync(Guid? categoryId)
+    private async Task ValidateCategoriesAsync(List<Guid> categoryIds)
     {
-        if (categoryId.HasValue && categoryId.Value != Guid.Empty)
+        foreach (var categoryId in categoryIds.Where(id => id != Guid.Empty).Distinct())
         {
-            var category = await _categoryRepository.GetByIdAsync(categoryId.Value);
+            var category = await _categoryRepository.GetByIdAsync(categoryId);
             if (category is null)
                 throw new AppException("La categoría seleccionada no existe.", 400);
         }
@@ -337,50 +337,170 @@ public class ProductService : IProductService
         }
     }
 
-    private static void UpdateVariantsInPlace(Product product, List<ProductVariantInputDto> requestVariants)
+    private static void ApplyProductCategories(Product product, List<Guid> categoryIds)
     {
-        var existingList = product.Variants.ToList();
-        var matchedExistingIds = new HashSet<Guid>();
-
-        foreach (var r in requestVariants)
+        foreach (var categoryId in categoryIds.Where(id => id != Guid.Empty).Distinct())
         {
-            var existing = product.Variants.FirstOrDefault(v =>
-                v.Sku.Equals(r.Sku, StringComparison.OrdinalIgnoreCase)) ??
-                product.Variants.FirstOrDefault(v =>
-                    v.Size.Equals(r.Size, StringComparison.OrdinalIgnoreCase) &&
-                    v.ColorName.Equals(r.ColorName, StringComparison.OrdinalIgnoreCase));
+            product.ProductCategories.Add(new ProductCategory
+            {
+                ProductId = product.Id,
+                CategoryId = categoryId,
+            });
+        }
+    }
 
-            if (existing != null)
-            {
-                existing.Size = r.Size;
-                existing.ColorName = r.ColorName;
-                existing.ColorHex = r.ColorHex;
-                existing.Sku = r.Sku;
-                existing.Stock = r.Stock;
-                existing.ImageUrl = r.ImageUrl;
-                existing.UpdatedAt = DateTime.UtcNow;
-                matchedExistingIds.Add(existing.Id);
-            }
-            else
-            {
-                product.Variants.Add(new ProductVariant
-                {
-                    Size = r.Size,
-                    ColorName = r.ColorName,
-                    ColorHex = r.ColorHex,
-                    Sku = r.Sku,
-                    Stock = r.Stock,
-                    ImageUrl = r.ImageUrl,
-                });
-            }
+    private static void SyncImages(Product product, List<string> requestImageUrls, IProductRepository repository, DateTime now)
+    {
+        var incomingImages = requestImageUrls
+            .Select((url, index) => new { Url = url, Order = index })
+            .ToList();
+        var incomingUrls = incomingImages
+            .Select(i => i.Url)
+            .ToHashSet(StringComparer.Ordinal);
+
+        var imagesToRemove = product.Images
+            .Where(img => !incomingUrls.Contains(img.Url))
+            .ToList();
+
+        if (imagesToRemove.Count > 0)
+        {
+            repository.RemoveImagesRange(imagesToRemove);
+            foreach (var image in imagesToRemove)
+                product.Images.Remove(image);
         }
 
-        foreach (var existing in existingList)
+        foreach (var incoming in incomingImages)
         {
-            if (!matchedExistingIds.Contains(existing.Id))
+            var existing = product.Images.FirstOrDefault(img =>
+                img.Url.Equals(incoming.Url, StringComparison.Ordinal));
+
+            if (existing is not null)
             {
-                product.Variants.Remove(existing);
+                existing.Order = incoming.Order;
+                existing.UpdatedAt = now;
+                continue;
             }
+
+            product.Images.Add(new ProductImage
+            {
+                Id = Guid.NewGuid(),
+                ProductId = product.Id,
+                Url = incoming.Url,
+                Order = incoming.Order,
+                CreatedAt = now,
+                UpdatedAt = now,
+            });
+        }
+    }
+
+    private static void SyncVariants(Product product, List<ProductVariantInputDto> requestVariants, IProductRepository repository, DateTime now)
+    {
+        var incomingSkus = requestVariants
+            .Select(v => v.Sku)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var variantsToRemove = product.Variants
+            .Where(v => !incomingSkus.Contains(v.Sku))
+            .ToList();
+
+        if (variantsToRemove.Count > 0)
+        {
+            repository.RemoveVariantsRange(variantsToRemove);
+            foreach (var variant in variantsToRemove)
+                product.Variants.Remove(variant);
+        }
+
+        foreach (var requestVariant in requestVariants)
+        {
+            var existing = product.Variants.FirstOrDefault(v =>
+                v.Sku.Equals(requestVariant.Sku, StringComparison.OrdinalIgnoreCase));
+
+            if (existing is not null)
+            {
+                existing.Size = requestVariant.Size;
+                existing.ColorName = requestVariant.ColorName;
+                existing.ColorHex = requestVariant.ColorHex;
+                existing.Sku = requestVariant.Sku;
+                existing.Stock = requestVariant.Stock;
+                existing.ImageUrl = requestVariant.ImageUrl;
+                existing.UpdatedAt = now;
+                continue;
+            }
+
+            product.Variants.Add(new ProductVariant
+            {
+                Id = Guid.NewGuid(),
+                ProductId = product.Id,
+                Size = requestVariant.Size,
+                ColorName = requestVariant.ColorName,
+                ColorHex = requestVariant.ColorHex,
+                Sku = requestVariant.Sku,
+                Stock = requestVariant.Stock,
+                ImageUrl = requestVariant.ImageUrl,
+                CreatedAt = now,
+                UpdatedAt = now,
+            });
+        }
+    }
+
+    private static void SyncProductCategories(Product product, List<Guid> requestCategoryIds, IProductRepository repository)
+    {
+        var incomingCategoryIds = requestCategoryIds
+            .Where(id => id != Guid.Empty)
+            .Distinct()
+            .ToHashSet();
+
+        var productCategoriesToRemove = product.ProductCategories
+            .Where(pc => !incomingCategoryIds.Contains(pc.CategoryId))
+            .ToList();
+
+        if (productCategoriesToRemove.Count > 0)
+        {
+            repository.RemoveProductCategoriesRange(productCategoriesToRemove);
+            foreach (var productCategory in productCategoriesToRemove)
+                product.ProductCategories.Remove(productCategory);
+        }
+
+        foreach (var categoryId in incomingCategoryIds)
+        {
+            if (product.ProductCategories.Any(pc => pc.CategoryId == categoryId))
+                continue;
+
+            product.ProductCategories.Add(new ProductCategory
+            {
+                ProductId = product.Id,
+                CategoryId = categoryId,
+            });
+        }
+    }
+
+    private static void SyncProductCollections(Product product, List<Guid> requestCollectionIds, IProductRepository repository)
+    {
+        var incomingCollectionIds = requestCollectionIds
+            .Distinct()
+            .ToHashSet();
+
+        var productCollectionsToRemove = product.ProductCollections
+            .Where(pc => !incomingCollectionIds.Contains(pc.CollectionId))
+            .ToList();
+
+        if (productCollectionsToRemove.Count > 0)
+        {
+            repository.RemoveProductCollectionsRange(productCollectionsToRemove);
+            foreach (var productCollection in productCollectionsToRemove)
+                product.ProductCollections.Remove(productCollection);
+        }
+
+        foreach (var collectionId in incomingCollectionIds)
+        {
+            if (product.ProductCollections.Any(pc => pc.CollectionId == collectionId))
+                continue;
+
+            product.ProductCollections.Add(new ProductCollection
+            {
+                ProductId = product.Id,
+                CollectionId = collectionId,
+            });
         }
     }
 
@@ -396,47 +516,66 @@ public class ProductService : IProductService
         }
     }
 
-    private static ProductPublicListDto ToPublicListDto(Product p) => new(
-        p.Id, p.Name, p.Slug, p.Category?.Name ?? string.Empty, p.BasePrice,
-        p.Images.OrderBy(i => i.Order).Select(i => i.Url).FirstOrDefault(),
-        p.Images.OrderBy(i => i.Order).Select(i => i.Url).ToList(),
-        p.Variants.Any(v => v.Stock > 0),
-        p.Variants.Select(v => v.Size).Distinct().ToList(),
-        p.Variants.Select(v => new ProductPublicColorDto(v.ColorName, v.ColorHex)).DistinctBy(c => c.Name).ToList()
-    );
+    private static ProductPublicListDto ToPublicListDto(Product p)
+    {
+        var categories = GetCategorySummaries(p);
 
-    private static ProductPublicDetailDto ToPublicDetailDto(Product p) => new(
-        p.Id,
-        p.Name,
-        p.Slug,
-        p.Description,
-        p.BasePrice,
-        p.Category?.Name ?? string.Empty,
-        p.CategoryId,
-        p.Images.OrderBy(i => i.Order).Select(i => i.Url).ToList(),
-        p.Variants.Select(v => v.Size).Distinct().ToList(),
-        p.Variants
-            .Select(v => new ProductColorPublicDto(v.ColorName, v.ColorHex))
-            .DistinctBy(c => c.Name)
-            .ToList(),
-        p.Variants
-            .Select(v => new ProductPublicVariantDto(v.Size, v.ColorName, v.ColorHex, v.Stock > 0))
-            .ToList(),
-        p.Variants.Any(v => v.Stock > 0),
-        p.AllowCustomization,
-        p.DeliveryTime,
-        p.SeoTitle,
-        p.SeoDescription,
-        p.SeoSocialImageUrl,
-        p.SeoAltText,
-        p.ProductCollections.Select(pc => pc.CollectionId).ToList()
-    );
+        return new ProductPublicListDto(
+            p.Id,
+            p.Name,
+            p.Slug,
+            GetCategoryName(categories),
+            categories.Select(c => c.Id).ToList(),
+            categories,
+            p.BasePrice,
+            p.Images.OrderBy(i => i.Order).Select(i => i.Url).FirstOrDefault(),
+            p.Images.OrderBy(i => i.Order).Select(i => i.Url).ToList(),
+            p.Variants.Any(v => v.Stock > 0),
+            p.Variants.Select(v => v.Size).Distinct().ToList(),
+            p.Variants.Select(v => new ProductPublicColorDto(v.ColorName, v.ColorHex)).DistinctBy(c => c.Name).ToList()
+        );
+    }
+
+    private static ProductPublicDetailDto ToPublicDetailDto(Product p)
+    {
+        var categories = GetCategorySummaries(p);
+
+        return new ProductPublicDetailDto(
+            p.Id,
+            p.Name,
+            p.Slug,
+            p.Description,
+            p.BasePrice,
+            GetCategoryName(categories),
+            categories.Select(c => (Guid?)c.Id).FirstOrDefault(),
+            categories.Select(c => c.Id).ToList(),
+            categories,
+            p.Images.OrderBy(i => i.Order).Select(i => i.Url).ToList(),
+            p.Variants.Select(v => v.Size).Distinct().ToList(),
+            p.Variants
+                .Select(v => new ProductColorPublicDto(v.ColorName, v.ColorHex))
+                .DistinctBy(c => c.Name)
+                .ToList(),
+            p.Variants
+                .Select(v => new ProductPublicVariantDto(v.Size, v.ColorName, v.ColorHex, v.Stock > 0))
+                .ToList(),
+            p.Variants.Any(v => v.Stock > 0),
+            p.AllowCustomization,
+            p.DeliveryTime,
+            p.SeoTitle,
+            p.SeoDescription,
+            p.SeoSocialImageUrl,
+            p.SeoAltText,
+            p.ProductCollections.Select(pc => pc.CollectionId).ToList()
+        );
+    }
 
     private static ProductResponseDto ToDto(Product p, List<Season>? seasons = null)
     {
         var primarySku = p.Variants.FirstOrDefault()?.Sku ?? (p.Id != Guid.Empty ? $"MP-{p.Id.ToString()[..4].ToUpper()}" : "MP-000");
         var totalStock = p.Variants.Sum(v => v.Stock);
         var imageUrl = p.Images.OrderBy(i => i.Order).Select(i => i.Url).FirstOrDefault();
+        var categories = GetCategorySummaries(p);
 
         string seasonName = "Otoño - Invierno";
         if (seasons != null && p.ProductCollections.Any())
@@ -450,7 +589,14 @@ public class ProductService : IProductService
         }
 
         return new ProductResponseDto(
-            p.Id, p.Name, p.Slug, p.CategoryId, p.Category?.Name ?? "Pijamas de mujer", p.Description,
+            p.Id,
+            p.Name,
+            p.Slug,
+            categories.Select(c => (Guid?)c.Id).FirstOrDefault(),
+            GetCategoryName(categories),
+            categories.Select(c => c.Id).ToList(),
+            categories,
+            p.Description,
             p.BasePrice, p.Status.ToString(), p.FeaturedHome, p.AllowCustomization, p.DeliveryTime,
             p.SeoTitle, p.SeoDescription, p.SeoSlug, p.SeoSocialImageUrl, p.SeoAltText,
             p.Images.OrderBy(i => i.Order).Select(i => i.Url).ToList(),
@@ -463,4 +609,17 @@ public class ProductService : IProductService
             imageUrl
         );
     }
+
+    private static List<CategorySummaryDto> GetCategorySummaries(Product product) =>
+        product.ProductCategories
+            .Where(pc => pc.Category is not null)
+            .Select(pc => new CategorySummaryDto(pc.CategoryId, pc.Category.Name, pc.Category.Slug))
+            .DistinctBy(c => c.Id)
+            .OrderBy(c => c.Name)
+            .ToList();
+
+    private static string GetCategoryName(List<CategorySummaryDto> categories) =>
+        categories.Count == 0
+            ? "Pijamas de mujer"
+            : string.Join(", ", categories.Select(c => c.Name));
 }

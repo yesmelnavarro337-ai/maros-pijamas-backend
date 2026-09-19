@@ -14,7 +14,8 @@ public class ProductRepository : IProductRepository
 
     private IQueryable<Product> QueryWithIncludes() =>
         _context.Products
-            .Include(p => p.Category)
+            .Include(p => p.ProductCategories)
+                .ThenInclude(pc => pc.Category)
             .Include(p => p.Images)
             .Include(p => p.Variants)
             .Include(p => p.ProductCollections);
@@ -37,6 +38,18 @@ public class ProductRepository : IProductRepository
     public void Remove(Product product) =>
         _context.Products.Remove(product);
 
+    public void RemoveVariantsRange(IEnumerable<ProductVariant> variants) =>
+        _context.ProductVariants.RemoveRange(variants);
+
+    public void RemoveImagesRange(IEnumerable<ProductImage> images) =>
+        _context.ProductImages.RemoveRange(images);
+
+    public void RemoveProductCategoriesRange(IEnumerable<ProductCategory> productCategories) =>
+        _context.ProductCategories.RemoveRange(productCategories);
+
+    public void RemoveProductCollectionsRange(IEnumerable<ProductCollection> productCollections) =>
+        _context.ProductCollections.RemoveRange(productCollections);
+
     public Task SaveChangesAsync() =>
         _context.SaveChangesAsync();
 
@@ -48,7 +61,7 @@ public class ProductRepository : IProductRepository
         var query = QueryWithIncludes().Where(p => p.Status == ProductStatus.Activo);
 
         if (categoryId.HasValue)
-            query = query.Where(p => p.CategoryId == categoryId.Value);
+            query = query.Where(p => p.ProductCategories.Any(pc => pc.CategoryId == categoryId.Value));
 
         if (collectionId.HasValue)
             query = query.Where(p => p.ProductCollections.Any(pc => pc.CollectionId == collectionId.Value));

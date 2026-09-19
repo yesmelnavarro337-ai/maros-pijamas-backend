@@ -198,7 +198,6 @@ CREATE TABLE "Products" (
     "Id" uuid NOT NULL,
     "Name" character varying(200) NOT NULL,
     "Slug" character varying(220) NOT NULL,
-    "CategoryId" uuid NOT NULL,
     "Description" text NOT NULL,
     "BasePrice" numeric(12,2) NOT NULL,
     "Status" character varying(20) NOT NULL,
@@ -213,8 +212,7 @@ CREATE TABLE "Products" (
     "SeoAltText" text,
     "CreatedAt" timestamp with time zone NOT NULL,
     "UpdatedAt" timestamp with time zone,
-    CONSTRAINT "PK_Products" PRIMARY KEY ("Id"),
-    CONSTRAINT "FK_Products_Categories_CategoryId" FOREIGN KEY ("CategoryId") REFERENCES "Categories" ("Id") ON DELETE RESTRICT
+    CONSTRAINT "PK_Products" PRIMARY KEY ("Id")
 );
 
 CREATE TABLE "Seasons" (
@@ -257,6 +255,14 @@ CREATE TABLE "ProductCollections" (
     CONSTRAINT "PK_ProductCollections" PRIMARY KEY ("ProductId", "CollectionId"),
     CONSTRAINT "FK_ProductCollections_Collections_CollectionId" FOREIGN KEY ("CollectionId") REFERENCES "Collections" ("Id") ON DELETE CASCADE,
     CONSTRAINT "FK_ProductCollections_Products_ProductId" FOREIGN KEY ("ProductId") REFERENCES "Products" ("Id") ON DELETE CASCADE
+);
+
+CREATE TABLE "ProductCategories" (
+    "ProductId" uuid NOT NULL,
+    "CategoryId" uuid NOT NULL,
+    CONSTRAINT "PK_ProductCategories" PRIMARY KEY ("ProductId", "CategoryId"),
+    CONSTRAINT "FK_ProductCategories_Categories_CategoryId" FOREIGN KEY ("CategoryId") REFERENCES "Categories" ("Id") ON DELETE CASCADE,
+    CONSTRAINT "FK_ProductCategories_Products_ProductId" FOREIGN KEY ("ProductId") REFERENCES "Products" ("Id") ON DELETE CASCADE
 );
 
 CREATE TABLE "ProductImages" (
@@ -353,11 +359,11 @@ CREATE UNIQUE INDEX "IX_Categories_Slug" ON "Categories" ("Slug");
 
 CREATE UNIQUE INDEX "IX_PageHeaders_PageKey" ON "PageHeaders" ("PageKey");
 
+CREATE INDEX "IX_ProductCategories_CategoryId" ON "ProductCategories" ("CategoryId");
+
 CREATE INDEX "IX_ProductCollections_CollectionId" ON "ProductCollections" ("CollectionId");
 
 CREATE INDEX "IX_ProductImages_ProductId" ON "ProductImages" ("ProductId");
-
-CREATE INDEX "IX_Products_CategoryId" ON "Products" ("CategoryId");
 
 CREATE INDEX "IX_Products_IsDeleted" ON "Products" ("IsDeleted");
 
@@ -414,10 +420,14 @@ INSERT INTO "Categories" ("Id", "Name", "Slug", "CreatedAt", "UpdatedAt") VALUES
 INSERT INTO "Collections" ("Id", "Name", "Description", "CoverImageUrl", "AccentHex", "IsDefault", "CreatedAt", "UpdatedAt") VALUES ('37b3ce29-e870-4fa1-96d6-81a69bdaad7b', 'Navidad ', 'Coleccion navideña 2026', NULL, '#6B6832', FALSE, '2026-08-09 16:51:43+00:00', '2026-08-09 17:11:10+00:00');
 INSERT INTO "Collections" ("Id", "Name", "Description", "CoverImageUrl", "AccentHex", "IsDefault", "CreatedAt", "UpdatedAt") VALUES ('9434ec89-10ea-4f9d-aae3-a617441fb991', 'General', 'Catálogo permanente', NULL, '#6B6832', FALSE, '2026-08-09 16:22:22+00:00', '2026-08-13 01:17:22+00:00');
 INSERT INTO "Collections" ("Id", "Name", "Description", "CoverImageUrl", "AccentHex", "IsDefault", "CreatedAt", "UpdatedAt") VALUES ('cab2357b-0349-4ebc-96a9-cdc2558630af', 'Amor y Amistad 2026', 'Celebra los lazos más especiales con nuestra nueva colección de pijamas diseñadas para compartir. Descubre prendas suaves, frescas y con detalles llenos de cariño, ideales para regalar o regalarte. Porque los mejores momentos se viven en casa, envuelto en la máxima comodidad y con el estilo que mereces. ¡Haz que cada noche sea una excusa para celebrar el afecto!!', 'https://res.cloudinary.com/am8qkv09/image/upload/v1788828803/maros-pijamas/collections/phcfucqxj0umfugq0v0i.jpg', '#ff0000', TRUE, '2026-09-08 00:52:15+00:00', '2026-09-11 04:59:39+00:00');
-INSERT INTO "Products" ("Id", "Name", "Slug", "CategoryId", "Description", "BasePrice", "Status", "FeaturedHome", "AllowCustomization", "DeliveryTime", "SeoTitle", "SeoDescription", "SeoSlug", "SeoSocialImageUrl", "SeoAltText", "CreatedAt", "UpdatedAt", "IsDeleted") VALUES ('59b077d9-2aab-4a76-b0e4-7627d4617f44', 'Pijama Clásica Satín Manga Larga', 'pijama-clasica-satin-manga-larga', '5efae840-812e-4449-b8de-5a267d97f008', 'Pijama de satín suave y elegante, incluye camisa de botones con cuello camisero y pantalón con pretina elástica. Máximo confort para el descanso.', 129000.00, 'Activo', TRUE, TRUE, '5-7 días hábiles', 'Pijama Clásica de Satín para Mujer | Maro''s Pijamas', 'Descubre la comodidad y elegancia con nuestra pijama de satín de manga larga. Envíos a todo el país.', 'pijama-clasica-satin-manga-larga', NULL, NULL, '2026-08-09 17:03:34+00:00', NULL, FALSE);
-INSERT INTO "Products" ("Id", "Name", "Slug", "CategoryId", "Description", "BasePrice", "Status", "FeaturedHome", "AllowCustomization", "DeliveryTime", "SeoTitle", "SeoDescription", "SeoSlug", "SeoSocialImageUrl", "SeoAltText", "CreatedAt", "UpdatedAt", "IsDeleted") VALUES ('328af121-f320-4c98-b49b-bda3fba50554', 'Pijama Clásica Satin Navideña Esmeralda', 'pijama-clasica-satin-navidena-esmeralda', '5efae840-812e-4449-b8de-5a267d97f008', 'Edición especial navideña. Conjunto de pijama de dos piezas confeccionado en satén premium de tono verde esmeralda con ribetes a contraste en rojo festivo. Camisa de manga larga con cuello de solapa, abotonada al frente y bolsillo en el pecho, acompañada de un pantalón de corte recto de ajuste cómodo. Perfecta para lucir elegante y acogedora durante las fiestas de fin de año.', 135000.00, 'Activo', TRUE, TRUE, '5-7 días hábiles', '', '', 'pijama-clasica-satin-navidena-esmeralda', NULL, NULL, '2026-09-03 04:56:57+00:00', NULL, FALSE);
-INSERT INTO "Products" ("Id", "Name", "Slug", "CategoryId", "Description", "BasePrice", "Status", "FeaturedHome", "AllowCustomization", "DeliveryTime", "SeoTitle", "SeoDescription", "SeoSlug", "SeoSocialImageUrl", "SeoAltText", "CreatedAt", "UpdatedAt", "IsDeleted") VALUES ('5307cdba-e5cd-429e-94af-d932f69116df', 'Pijama Navidad', 'pijama-navidad', '5efae840-812e-4449-b8de-5a267d97f008', 'Pijamas familiares para navidad', 60000.00, 'Activo', FALSE, TRUE, '5-7 días hábiles', '', '', 'pijama-navidad', NULL, NULL, '2026-08-12 19:50:00+00:00', NULL, FALSE);
-INSERT INTO "Products" ("Id", "Name", "Slug", "CategoryId", "Description", "BasePrice", "Status", "FeaturedHome", "AllowCustomization", "DeliveryTime", "SeoTitle", "SeoDescription", "SeoSlug", "SeoSocialImageUrl", "SeoAltText", "CreatedAt", "UpdatedAt", "IsDeleted") VALUES ('c505094a-8df1-4124-9e30-dd93fe5366fa', 'Pijama Satín Beige', 'pijama-satin-beige', '5efae840-812e-4449-b8de-5a267d97f008', 'Pijama de dos piezas en satín suave.', 129000.00, 'Activo', TRUE, TRUE, '5-7 días hábiles', 'Pijama Satín Beige | Maro''s Pijamas', 'Pijama premium en satín.', 'pijama-satin-beige', NULL, NULL, '2026-08-09 07:41:58+00:00', NULL, FALSE);
+INSERT INTO "Products" ("Id", "Name", "Slug", "Description", "BasePrice", "Status", "FeaturedHome", "AllowCustomization", "DeliveryTime", "SeoTitle", "SeoDescription", "SeoSlug", "SeoSocialImageUrl", "SeoAltText", "CreatedAt", "UpdatedAt", "IsDeleted") VALUES ('59b077d9-2aab-4a76-b0e4-7627d4617f44', 'Pijama Clásica Satín Manga Larga', 'pijama-clasica-satin-manga-larga', 'Pijama de satín suave y elegante, incluye camisa de botones con cuello camisero y pantalón con pretina elástica. Máximo confort para el descanso.', 129000.00, 'Activo', TRUE, TRUE, '5-7 días hábiles', 'Pijama Clásica de Satín para Mujer | Maro''s Pijamas', 'Descubre la comodidad y elegancia con nuestra pijama de satín de manga larga. Envíos a todo el país.', 'pijama-clasica-satin-manga-larga', NULL, NULL, '2026-08-09 17:03:34+00:00', NULL, FALSE);
+INSERT INTO "Products" ("Id", "Name", "Slug", "Description", "BasePrice", "Status", "FeaturedHome", "AllowCustomization", "DeliveryTime", "SeoTitle", "SeoDescription", "SeoSlug", "SeoSocialImageUrl", "SeoAltText", "CreatedAt", "UpdatedAt", "IsDeleted") VALUES ('328af121-f320-4c98-b49b-bda3fba50554', 'Pijama Clásica Satin Navideña Esmeralda', 'pijama-clasica-satin-navidena-esmeralda', 'Edición especial navideña. Conjunto de pijama de dos piezas confeccionado en satén premium de tono verde esmeralda con ribetes a contraste en rojo festivo. Camisa de manga larga con cuello de solapa, abotonada al frente y bolsillo en el pecho, acompañada de un pantalón de corte recto de ajuste cómodo. Perfecta para lucir elegante y acogedora durante las fiestas de fin de año.', 135000.00, 'Activo', TRUE, TRUE, '5-7 días hábiles', '', '', 'pijama-clasica-satin-navidena-esmeralda', NULL, NULL, '2026-09-03 04:56:57+00:00', NULL, FALSE);
+INSERT INTO "Products" ("Id", "Name", "Slug", "Description", "BasePrice", "Status", "FeaturedHome", "AllowCustomization", "DeliveryTime", "SeoTitle", "SeoDescription", "SeoSlug", "SeoSocialImageUrl", "SeoAltText", "CreatedAt", "UpdatedAt", "IsDeleted") VALUES ('5307cdba-e5cd-429e-94af-d932f69116df', 'Pijama Navidad', 'pijama-navidad', 'Pijamas familiares para navidad', 60000.00, 'Activo', FALSE, TRUE, '5-7 días hábiles', '', '', 'pijama-navidad', NULL, NULL, '2026-08-12 19:50:00+00:00', NULL, FALSE);
+INSERT INTO "Products" ("Id", "Name", "Slug", "Description", "BasePrice", "Status", "FeaturedHome", "AllowCustomization", "DeliveryTime", "SeoTitle", "SeoDescription", "SeoSlug", "SeoSocialImageUrl", "SeoAltText", "CreatedAt", "UpdatedAt", "IsDeleted") VALUES ('c505094a-8df1-4124-9e30-dd93fe5366fa', 'Pijama Satín Beige', 'pijama-satin-beige', 'Pijama de dos piezas en satín suave.', 129000.00, 'Activo', TRUE, TRUE, '5-7 días hábiles', 'Pijama Satín Beige | Maro''s Pijamas', 'Pijama premium en satín.', 'pijama-satin-beige', NULL, NULL, '2026-08-09 07:41:58+00:00', NULL, FALSE);
+INSERT INTO "ProductCategories" ("ProductId", "CategoryId") VALUES ('59b077d9-2aab-4a76-b0e4-7627d4617f44', '5efae840-812e-4449-b8de-5a267d97f008');
+INSERT INTO "ProductCategories" ("ProductId", "CategoryId") VALUES ('328af121-f320-4c98-b49b-bda3fba50554', '5efae840-812e-4449-b8de-5a267d97f008');
+INSERT INTO "ProductCategories" ("ProductId", "CategoryId") VALUES ('5307cdba-e5cd-429e-94af-d932f69116df', '5efae840-812e-4449-b8de-5a267d97f008');
+INSERT INTO "ProductCategories" ("ProductId", "CategoryId") VALUES ('c505094a-8df1-4124-9e30-dd93fe5366fa', '5efae840-812e-4449-b8de-5a267d97f008');
 INSERT INTO "ProductCollections" ("ProductId", "CollectionId") VALUES ('328af121-f320-4c98-b49b-bda3fba50554', '37b3ce29-e870-4fa1-96d6-81a69bdaad7b');
 INSERT INTO "ProductCollections" ("ProductId", "CollectionId") VALUES ('5307cdba-e5cd-429e-94af-d932f69116df', '37b3ce29-e870-4fa1-96d6-81a69bdaad7b');
 INSERT INTO "ProductCollections" ("ProductId", "CollectionId") VALUES ('c505094a-8df1-4124-9e30-dd93fe5366fa', '37b3ce29-e870-4fa1-96d6-81a69bdaad7b');

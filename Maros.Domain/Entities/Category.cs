@@ -10,5 +10,5 @@ public class Category : BaseEntity
     public string? ImageUrl { get; set; }
     public bool IsActive { get; set; } = true;
 
-    public ICollection<Product> Products { get; set; } = new List<Product>();
-}
+    public ICollection<ProductCategory> ProductCategories { get; set; } = new List<ProductCategory>();
+}
