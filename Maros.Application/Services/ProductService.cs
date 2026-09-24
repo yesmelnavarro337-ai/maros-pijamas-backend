@@ -616,7 +616,7 @@ public class ProductService : IProductService
     private static List<CategorySummaryDto> GetCategorySummaries(Product product) =>
         product.ProductCategories
             .Where(pc => pc.Category is not null)
-            .Select(pc => new CategorySummaryDto(pc.CategoryId, pc.Category.Name, pc.Category.Slug))
+            .Select(pc => new CategorySummaryDto(pc.CategoryId, pc.Category.Name, pc.Category.Slug, pc.Category.DefaultPrice, pc.Category.SurchargeReason))
             .DistinctBy(c => c.Id)
             .OrderBy(c => c.Name)
             .ToList();

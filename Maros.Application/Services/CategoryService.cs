@@ -42,6 +42,8 @@ public class CategoryService : ICategoryService
             Description = request.Description,
             ImageUrl = request.ImageUrl,
             IsActive = request.IsActive,
+            DefaultPrice = request.DefaultPrice,
+            SurchargeReason = request.SurchargeReason,
         };
         await _categoryRepository.AddAsync(category);
         await _categoryRepository.SaveChangesAsync();
@@ -67,6 +69,8 @@ public class CategoryService : ICategoryService
         category.Description = request.Description;
         category.ImageUrl = request.ImageUrl;
         category.IsActive = request.IsActive;
+        category.DefaultPrice = request.DefaultPrice;
+        category.SurchargeReason = request.SurchargeReason;
         category.UpdatedAt = DateTime.UtcNow;
 
         await _categoryRepository.SaveChangesAsync();
@@ -94,7 +98,7 @@ public class CategoryService : ICategoryService
     public async Task<List<CategoryPublicDto>> GetPublicAsync()
     {
         var categories = await _categoryRepository.GetAllAsync();
-        return categories.Select(c => new CategoryPublicDto(c.Id, c.Name, c.Slug)).ToList();
+        return categories.Select(c => new CategoryPublicDto(c.Id, c.Name, c.Slug, c.DefaultPrice, c.SurchargeReason)).ToList();
     }
 
     private static CategoryResponseDto ToDto(Category c, int productsCount) => new(
@@ -106,6 +110,8 @@ public class CategoryService : ICategoryService
         c.IsActive,
         productsCount,
         c.CreatedAt,
-        c.UpdatedAt
+        c.UpdatedAt,
+        c.DefaultPrice,
+        c.SurchargeReason
     );
 }

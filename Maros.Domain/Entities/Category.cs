@@ -9,6 +9,8 @@ public class Category : BaseEntity
     public string? Description { get; set; }
     public string? ImageUrl { get; set; }
     public bool IsActive { get; set; } = true;
+    public decimal? DefaultPrice { get; set; }
+    public string? SurchargeReason { get; set; }
 
     public ICollection<ProductCategory> ProductCategories { get; set; } = new List<ProductCategory>();
 }

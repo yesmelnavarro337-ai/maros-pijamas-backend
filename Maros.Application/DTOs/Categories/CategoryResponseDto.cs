@@ -9,5 +9,7 @@ public record CategoryResponseDto(
     bool IsActive,
     int ProductsCount,
     DateTime CreatedAt,
-    DateTime? UpdatedAt
+    DateTime? UpdatedAt,
+    decimal? DefaultPrice = null,
+    string? SurchargeReason = null
 );

@@ -1,3 +1,3 @@
 namespace Maros.Application.DTOs.Categories;
 
-public record CategorySummaryDto(Guid Id, string Name, string Slug);
+public record CategorySummaryDto(Guid Id, string Name, string Slug, decimal? DefaultPrice = null, string? SurchargeReason = null);

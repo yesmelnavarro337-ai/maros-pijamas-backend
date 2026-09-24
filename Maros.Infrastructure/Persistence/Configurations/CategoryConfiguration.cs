@@ -10,6 +10,8 @@ public class CategoryConfiguration : IEntityTypeConfiguration<Category>
     {
         builder.Property(c => c.Name).IsRequired().HasMaxLength(100);
         builder.Property(c => c.Slug).IsRequired().HasMaxLength(120);
+        builder.Property(c => c.DefaultPrice).HasPrecision(18, 2);
+        builder.Property(c => c.SurchargeReason).HasMaxLength(250);
         builder.HasIndex(c => c.Slug).IsUnique();
 
         builder.HasMany(c => c.ProductCategories)

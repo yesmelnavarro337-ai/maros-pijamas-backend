@@ -7,5 +7,7 @@ public record CategoryUpdateDto(
     string? Slug = null,
     string? Description = null,
     string? ImageUrl = null,
-    bool IsActive = true
+    bool IsActive = true,
+    decimal? DefaultPrice = null,
+    string? SurchargeReason = null
 );
