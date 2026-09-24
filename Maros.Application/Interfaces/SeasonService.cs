@@ -34,7 +34,10 @@ public class SeasonService : ISeasonService
 
     public async Task<SeasonResponseDto> CreateAsync(SeasonCreateDto request)
     {
-        ValidateDateRange(request.StartDate, request.EndDate);
+        var startDateUtc = DateTime.SpecifyKind(request.StartDate, DateTimeKind.Utc);
+        var endDateUtc = DateTime.SpecifyKind(request.EndDate, DateTimeKind.Utc);
+
+        ValidateDateRange(startDateUtc, endDateUtc);
         var collection = await GetCollectionOrThrowAsync(request.CollectionId);
 
         var slug = SlugGenerator.Generate(request.Name);
@@ -53,8 +56,8 @@ public class SeasonService : ISeasonService
         {
             Name = request.Name,
             Slug = slug,
-            StartDate = request.StartDate,
-            EndDate = request.EndDate,
+            StartDate = startDateUtc,
+            EndDate = endDateUtc,
             Status = status,
             CollectionId = request.CollectionId,
             HeroTitle = request.HeroTitle,
@@ -66,6 +69,7 @@ public class SeasonService : ISeasonService
             ColorBackground = request.Colors.Background,
             CtaText = request.CtaText,
             CtaLink = request.CtaLink,
+            CreatedAt = DateTime.UtcNow,
         };
 
         ApplyFeaturedProducts(season, request.FeaturedProductIds);
@@ -82,7 +86,10 @@ public class SeasonService : ISeasonService
         var season = await _seasonRepository.GetByIdAsync(id)
             ?? throw new AppException("Temporada no encontrada.", 404);
 
-        ValidateDateRange(request.StartDate, request.EndDate);
+        var startDateUtc = DateTime.SpecifyKind(request.StartDate, DateTimeKind.Utc);
+        var endDateUtc = DateTime.SpecifyKind(request.EndDate, DateTimeKind.Utc);
+
+        ValidateDateRange(startDateUtc, endDateUtc);
         var collection = await GetCollectionOrThrowAsync(request.CollectionId);
 
         var slug = SlugGenerator.Generate(request.Name);
@@ -99,8 +106,8 @@ public class SeasonService : ISeasonService
 
         season.Name = request.Name;
         season.Slug = slug;
-        season.StartDate = request.StartDate;
-        season.EndDate = request.EndDate;
+        season.StartDate = startDateUtc;
+        season.EndDate = endDateUtc;
         season.Status = status;
         season.CollectionId = request.CollectionId;
         season.HeroTitle = request.HeroTitle;

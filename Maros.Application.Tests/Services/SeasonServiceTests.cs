@@ -88,4 +88,38 @@ public class SeasonServiceTests
         _seasonRepository.Verify(r => r.DeactivateAllExceptAsync(seasonId), Times.Once);
         Assert.Equal(SeasonStatus.Activa, season.Status);
     }
+
+    [Fact]
+    public async Task CreateAsync_ConvierteFechasAUtc_YSeteaCreatedAtUtc()
+    {
+        var collectionId = Guid.NewGuid();
+        var collection = new Collection { Id = collectionId };
+
+        _collectionRepository.Setup(r => r.GetByIdAsync(collectionId)).ReturnsAsync(collection);
+        _seasonRepository.Setup(r => r.SlugExistsAsync(It.IsAny<string>(), null)).ReturnsAsync(false);
+
+        Season? addedSeason = null;
+        _seasonRepository.Setup(r => r.AddAsync(It.IsAny<Season>()))
+            .Callback<Season>(s => addedSeason = s)
+            .Returns(Task.CompletedTask);
+
+        _seasonRepository.Setup(r => r.GetByIdAsync(It.IsAny<Guid>()))
+            .ReturnsAsync((Guid id) => addedSeason ?? new Season { Id = id });
+
+        var request = new SeasonCreateDto(
+            "Verano", collectionId,
+            new DateTime(2026, 6, 1, 0, 0, 0, DateTimeKind.Unspecified),
+            new DateTime(2026, 8, 31, 23, 59, 59, DateTimeKind.Unspecified),
+            "Verano 2026", "Subtítulo", null, null,
+            new SeasonColorsDto("#FFFFFF", "#000000", "#CCCCCC"),
+            "CTA", "/link", new List<Guid>()
+        );
+
+        await _sut.CreateAsync(request);
+
+        Assert.NotNull(addedSeason);
+        Assert.Equal(DateTimeKind.Utc, addedSeason.StartDate.Kind);
+        Assert.Equal(DateTimeKind.Utc, addedSeason.EndDate.Kind);
+        Assert.Equal(DateTimeKind.Utc, addedSeason.CreatedAt.Kind);
+    }
 }

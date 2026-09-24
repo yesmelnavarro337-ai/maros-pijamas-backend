@@ -97,6 +97,10 @@ public class BlogService : IBlogService
             var slug = await GenerateUniqueSlugAsync(title);
             var coverImageUrl = NormalizeCloudinaryUrl(request.CoverImageUrl);
 
+            var publishDate = request.PublishDate.HasValue
+                ? DateTime.SpecifyKind(request.PublishDate.Value, DateTimeKind.Utc)
+                : DateTime.UtcNow;
+
             var post = new BlogPost
             {
                 Title = title,
@@ -105,7 +109,8 @@ public class BlogService : IBlogService
                 CoverImageUrl = coverImageUrl,
                 Content = content,
                 Status = status,
-                PublishDate = request.PublishDate ?? DateTime.UtcNow,
+                PublishDate = publishDate,
+                CreatedAt = DateTime.UtcNow,
             };
 
             await _repository.AddAsync(post);
@@ -144,7 +149,9 @@ public class BlogService : IBlogService
         post.CoverImageUrl = NormalizeCloudinaryUrl(request.CoverImageUrl);
         post.Content = request.Content ?? string.Empty;
         post.Status = status;
-        post.PublishDate = request.PublishDate ?? post.PublishDate;
+        post.PublishDate = request.PublishDate.HasValue
+            ? DateTime.SpecifyKind(request.PublishDate.Value, DateTimeKind.Utc)
+            : (post.PublishDate.Kind == DateTimeKind.Utc ? post.PublishDate : DateTime.SpecifyKind(post.PublishDate, DateTimeKind.Utc));
         post.UpdatedAt = DateTime.UtcNow;
 
         await _repository.SaveChangesAsync();

@@ -332,6 +332,7 @@ public class ProductService : IProductService
                 ColorHex = v.ColorHex,
                 Sku = v.Sku,
                 Stock = v.Stock,
+                Price = v.Price,
                 ImageUrl = v.ImageUrl,
             });
         }
@@ -422,6 +423,7 @@ public class ProductService : IProductService
                 existing.ColorHex = requestVariant.ColorHex;
                 existing.Sku = requestVariant.Sku;
                 existing.Stock = requestVariant.Stock;
+                existing.Price = requestVariant.Price;
                 existing.ImageUrl = requestVariant.ImageUrl;
                 existing.UpdatedAt = now;
                 continue;
@@ -436,6 +438,7 @@ public class ProductService : IProductService
                 ColorHex = requestVariant.ColorHex,
                 Sku = requestVariant.Sku,
                 Stock = requestVariant.Stock,
+                Price = requestVariant.Price,
                 ImageUrl = requestVariant.ImageUrl,
                 CreatedAt = now,
                 UpdatedAt = now,
@@ -557,7 +560,7 @@ public class ProductService : IProductService
                 .DistinctBy(c => c.Name)
                 .ToList(),
             p.Variants
-                .Select(v => new ProductPublicVariantDto(v.Size, v.ColorName, v.ColorHex, v.Stock > 0))
+                .Select(v => new ProductPublicVariantDto(v.Size, v.ColorName, v.ColorHex, v.Stock > 0, v.Stock, v.Price))
                 .ToList(),
             p.Variants.Any(v => v.Stock > 0),
             p.AllowCustomization,
@@ -600,7 +603,7 @@ public class ProductService : IProductService
             p.BasePrice, p.Status.ToString(), p.FeaturedHome, p.AllowCustomization, p.DeliveryTime,
             p.SeoTitle, p.SeoDescription, p.SeoSlug, p.SeoSocialImageUrl, p.SeoAltText,
             p.Images.OrderBy(i => i.Order).Select(i => i.Url).ToList(),
-            p.Variants.Select(v => new ProductVariantResponseDto(v.Id, v.Size, v.ColorName, v.ColorHex, v.Sku, v.Stock, v.ImageUrl)).ToList(),
+            p.Variants.Select(v => new ProductVariantResponseDto(v.Id, v.Size, v.ColorName, v.ColorHex, v.Sku, v.Stock, v.Price, v.ImageUrl)).ToList(),
             p.ProductCollections.Select(pc => pc.CollectionId).ToList(),
             p.CreatedAt,
             primarySku,

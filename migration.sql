@@ -271,6 +271,7 @@ CREATE TABLE "ProductVariants" (
     "ColorHex" character varying(7) NOT NULL,
     "Sku" character varying(60) NOT NULL,
     "Stock" integer NOT NULL,
+    "Price" numeric(12,2),
     "ImageUrl" text,
     "CreatedAt" timestamp with time zone NOT NULL,
     "UpdatedAt" timestamp with time zone,

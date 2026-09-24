@@ -12,6 +12,7 @@ public class ProductVariantConfiguration : IEntityTypeConfiguration<ProductVaria
         builder.Property(v => v.ColorName).IsRequired().HasMaxLength(60);
         builder.Property(v => v.ColorHex).IsRequired().HasMaxLength(7);
         builder.Property(v => v.Sku).IsRequired().HasMaxLength(60);
+        builder.Property(v => v.Price).HasColumnType("numeric(12,2)");
 
         builder.HasIndex(v => v.Sku).IsUnique();
     }

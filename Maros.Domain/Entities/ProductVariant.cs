@@ -11,5 +11,6 @@ public class ProductVariant : BaseEntity
     public string ColorHex { get; set; } = string.Empty;
     public string Sku { get; set; } = string.Empty;
     public int Stock { get; set; }
+    public decimal? Price { get; set; }
     public string? ImageUrl { get; set; }
 }

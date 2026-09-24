@@ -8,5 +8,6 @@ public record ProductVariantInputDto(
     [Required, MaxLength(7)] string ColorHex,
     [Required, MaxLength(60)] string Sku,
     [Range(0, int.MaxValue)] int Stock,
+    [Range(0, double.MaxValue)] decimal? Price,
     string? ImageUrl
 );

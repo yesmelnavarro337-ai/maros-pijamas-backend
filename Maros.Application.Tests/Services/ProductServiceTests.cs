@@ -43,8 +43,8 @@ public class ProductServiceTests
             ImageUrls = new List<string>(),
             Variants = new List<ProductVariantInputDto>
             {
-                new("S", "Beige", "#EFE8D8", "SKU-REPETIDO", 5, null),
-                new("M", "Beige", "#EFE8D8", "SKU-REPETIDO", 5, null), // mismo SKU, dos veces
+                new("S", "Beige", "#EFE8D8", "SKU-REPETIDO", 5, null, null),
+                new("M", "Beige", "#EFE8D8", "SKU-REPETIDO", 5, null, null), // mismo SKU, dos veces
             },
             CollectionIds = new List<Guid>()
         };
@@ -73,7 +73,7 @@ public class ProductServiceTests
             SeoTitle = "SEO",
             SeoDescription = "SEO desc",
             ImageUrls = new List<string>(),
-            Variants = new List<ProductVariantInputDto> { new("S", "Beige", "#EFE8D8", "SKU-EXISTENTE", 5, null) },
+            Variants = new List<ProductVariantInputDto> { new("S", "Beige", "#EFE8D8", "SKU-EXISTENTE", 5, null, null) },
             CollectionIds = new List<Guid>()
         };
 
