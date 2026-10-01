@@ -12,6 +12,17 @@ public class ProductCategoryConfiguration : IEntityTypeConfiguration<ProductCate
 
         builder.HasIndex(pc => pc.CategoryId);
 
+        builder.Property(pc => pc.Price)
+            .HasColumnType("decimal(18,2)");
+
+        builder.Property(pc => pc.SurchargeReason)
+            .HasMaxLength(500);
+
+        // Filtro espejo al de Product: si el producto se borró lógicamente, su fila de
+        // unión no debe aparecer. Sin esto, Product es el extremo requerido de la
+        // relación y EF Core advierte 10622 al modelar.
+        builder.HasQueryFilter(pc => !pc.Product.IsDeleted);
+
         builder.HasOne(pc => pc.Product)
             .WithMany(p => p.ProductCategories)
             .HasForeignKey(pc => pc.ProductId)

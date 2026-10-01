@@ -18,5 +18,7 @@ public interface IProductRepository
     void RemoveImagesRange(IEnumerable<ProductImage> images);
     void RemoveProductCategoriesRange(IEnumerable<ProductCategory> productCategories);
     void RemoveProductCollectionsRange(IEnumerable<ProductCollection> productCollections);
+    void AddVariant(ProductVariant variant);
+    void AddImage(ProductImage image);
     Task SaveChangesAsync();
 }

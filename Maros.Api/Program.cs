@@ -11,10 +11,15 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 
+using Maros.Api.Converters;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // ─── Servicios base ───────────────────────────────────────────────
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.Converters.Add(new NullableGuidJsonConverter());
+});
 builder.Services.AddMemoryCache();
 
 // Reemplaza el formato ValidationProblemDetails por defecto de ASP.NET Core
@@ -114,7 +119,7 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
     ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
     ForwardLimit = null,
-    KnownNetworks = { },
+    KnownIPNetworks = { },
     KnownProxies = { }
 });
 
@@ -139,6 +144,7 @@ using (var scope = app.Services.CreateScope())
     await SeedData.SeedInitialAdminAsync(db, app.Configuration);
     await SiteSettingsSeed.SeedDefaultAsync(db);
     await PageHeaderSeed.SeedDefaultAsync(db);
+    await HomeSectionContentSeed.SeedDefaultAsync(db);
 }
 
 app.UseHttpsRedirection();

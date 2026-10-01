@@ -1,3 +1,7 @@
 <Solution>
+  <Project Path="Maros.Domain/Maros.Domain.csproj" />
+  <Project Path="Maros.Application/Maros.Application.csproj" />
+  <Project Path="Maros.Infrastructure/Maros.Infrastructure.csproj" />
+  <Project Path="Maros.Api/Maros.Api.csproj" />
   <Project Path="Maros.Application.Tests/Maros.Application.Tests.csproj" />
 </Solution>

@@ -16,7 +16,7 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.Property(p => p.DeliveryTime).HasMaxLength(100);
 
         builder.Property(p => p.SeoTitle).HasMaxLength(200);
-        builder.Property(p => p.SeoDescription).HasMaxLength(300);
+        builder.Property(p => p.SeoDescription).HasMaxLength(500);
         builder.Property(p => p.SeoSlug).HasMaxLength(220);
 
         builder.HasIndex(p => p.Slug).IsUnique();

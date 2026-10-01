@@ -8,4 +8,9 @@ public class AppException : Exception
     {
         StatusCode = statusCode;
     }
+
+    public AppException(string message, int statusCode, Exception innerException) : base(message, innerException)
+    {
+        StatusCode = statusCode;
+    }
 }

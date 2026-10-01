@@ -10,6 +10,9 @@ public class ProductCollectionConfiguration : IEntityTypeConfiguration<ProductCo
     {
         builder.HasKey(pc => new { pc.ProductId, pc.CollectionId });
 
+        // Filtro espejo al de Product (ver ProductCategoryConfiguration).
+        builder.HasQueryFilter(pc => !pc.Product.IsDeleted);
+
         builder.HasOne(pc => pc.Product)
             .WithMany(p => p.ProductCollections)
             .HasForeignKey(pc => pc.ProductId)

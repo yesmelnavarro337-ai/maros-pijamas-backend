@@ -15,5 +15,8 @@ public class ProductVariantConfiguration : IEntityTypeConfiguration<ProductVaria
         builder.Property(v => v.Price).HasColumnType("numeric(12,2)");
 
         builder.HasIndex(v => v.Sku).IsUnique();
+
+        // Filtro espejo al de Product (ver ProductCategoryConfiguration).
+        builder.HasQueryFilter(v => !v.Product.IsDeleted);
     }
 }

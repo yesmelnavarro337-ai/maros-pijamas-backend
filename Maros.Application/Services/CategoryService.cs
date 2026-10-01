@@ -68,10 +68,19 @@ public class CategoryService : ICategoryService
         category.Slug = slug;
         category.Description = request.Description;
         category.ImageUrl = request.ImageUrl;
-        category.IsActive = request.IsActive;
-        category.DefaultPrice = request.DefaultPrice;
-        category.SurchargeReason = request.SurchargeReason;
         category.UpdatedAt = DateTime.UtcNow;
+
+        // Campos de configuración opcional: si el cliente no los envía se preserva el
+        // valor almacenado. Sin este HasValue, el model binder aplicaba el default
+        // (IsActive = true) y cada edición borraba el precio/recargo de la categoría.
+        if (request.IsActive.HasValue)
+            category.IsActive = request.IsActive.Value;
+
+        if (request.DefaultPrice.HasValue)
+            category.DefaultPrice = request.DefaultPrice;
+
+        if (request.SurchargeReason is not null)
+            category.SurchargeReason = request.SurchargeReason;
 
         await _categoryRepository.SaveChangesAsync();
 
@@ -98,7 +107,7 @@ public class CategoryService : ICategoryService
     public async Task<List<CategoryPublicDto>> GetPublicAsync()
     {
         var categories = await _categoryRepository.GetAllAsync();
-        return categories.Select(c => new CategoryPublicDto(c.Id, c.Name, c.Slug, c.DefaultPrice, c.SurchargeReason)).ToList();
+        return categories.Select(c => new CategoryPublicDto(c.Id, c.Name, c.Slug, c.DefaultPrice, c.SurchargeReason, c.ImageUrl)).ToList();
     }
 
     private static CategoryResponseDto ToDto(Category c, int productsCount) => new(

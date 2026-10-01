@@ -10,6 +10,9 @@ public class SeasonFeaturedProductConfiguration : IEntityTypeConfiguration<Seaso
     {
         builder.HasKey(sp => new { sp.SeasonId, sp.ProductId });
 
+        // Filtro espejo al de Product (ver ProductCategoryConfiguration).
+        builder.HasQueryFilter(sp => !sp.Product.IsDeleted);
+
         builder.HasOne(sp => sp.Season)
             .WithMany(s => s.FeaturedProducts)
             .HasForeignKey(sp => sp.SeasonId)

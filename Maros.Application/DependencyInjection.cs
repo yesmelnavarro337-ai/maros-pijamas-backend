@@ -27,6 +27,7 @@ public static class DependencyInjection
         services.AddScoped<IPageHeaderService, PageHeaderService>();
         services.AddScoped<ISiteSettingsService, SiteSettingsService>();
         services.AddScoped<IHomeService, HomeService>();
+        services.AddScoped<IHomeSectionContentService, HomeSectionContentService>();
         services.AddScoped<IContactMessageService, ContactMessageService>();
         services.AddScoped<IInvitationService, InvitationService>();
         services.AddScoped<IDashboardService, DashboardService>();

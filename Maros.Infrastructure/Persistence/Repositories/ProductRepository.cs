@@ -14,6 +14,7 @@ public class ProductRepository : IProductRepository
 
     private IQueryable<Product> QueryWithIncludes() =>
         _context.Products
+            .AsSplitQuery()
             .Include(p => p.ProductCategories)
                 .ThenInclude(pc => pc.Category)
             .Include(p => p.Images)
@@ -50,11 +51,17 @@ public class ProductRepository : IProductRepository
     public void RemoveProductCollectionsRange(IEnumerable<ProductCollection> productCollections) =>
         _context.ProductCollections.RemoveRange(productCollections);
 
+    public void AddVariant(ProductVariant variant) =>
+        _context.ProductVariants.Add(variant);
+
+    public void AddImage(ProductImage image) =>
+        _context.ProductImages.Add(image);
+
     public Task SaveChangesAsync() =>
         _context.SaveChangesAsync();
 
     public Task<Product?> GetBySlugAsync(string slug) =>
-    QueryWithIncludes().FirstOrDefaultAsync(p => p.Slug == slug && p.Status == ProductStatus.Activo);
+        QueryWithIncludes().FirstOrDefaultAsync(p => p.Slug == slug && p.Status == ProductStatus.Activo);
 
     public Task<List<Product>> GetPublicAsync(Guid? categoryId, Guid? collectionId, string? search)
     {

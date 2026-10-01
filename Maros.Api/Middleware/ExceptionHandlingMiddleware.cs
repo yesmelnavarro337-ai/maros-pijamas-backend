@@ -27,13 +27,31 @@ public class ExceptionHandlingMiddleware
             _logger.LogWarning(appEx, "Error de negocio en {Path}: {Message}", context.Request.Path, appEx.Message);
             await WriteResponseAsync(context, new ApiErrorResponse(appEx.StatusCode, appEx.Message));
         }
+        catch (DbUpdateConcurrencyException dbEx)
+        {
+            // Genuino conflicto de concurrencia: la fila cambió o desapareció entre la
+            // lectura y el guardado, o el UPDATE/XML affected 0 filas. Se separa del
+            // catch genérico de abajo porque la causa y la acción correctiva difieren.
+            _logger.LogError(dbEx,
+                "Conflicto de concurrencia en {Path}. Entidades afectadas: {Entidades}",
+                context.Request.Path,
+                string.Join(", ", dbEx.Entries.Select(e => e.Metadata.ClrType.Name)));
+            await WriteResponseAsync(context, new ApiErrorResponse(
+                (int)HttpStatusCode.Conflict,
+                "El registro fue modificado por otra petición. Vuelve a cargarlo e inténtalo de nuevo."
+            ));
+        }
         catch (DbUpdateException dbEx)
         {
-            // Captura violaciones de restricciones de SQL Server que no anticipamos
+            // Captura violaciones de restricciones de SQL Server/PostgreSQL que no anticipamos
             // con un AppException explícito (ej. una condición de carrera en un
             // índice único, o una FK que se nos escapó validar antes de guardar).
-            // Nunca se filtra el mensaje SQL crudo al cliente — solo se registra.
-            _logger.LogError(dbEx, "Error de base de datos en {Path}", context.Request.Path);
+            // El detalle real (nombre de restricción, SqlState) solo se registra en el log:
+            // nunca se filtra el mensaje SQL crudo al cliente.
+            _logger.LogError(dbEx,
+                "Violación de integridad en {Path}: {Detalle}",
+                context.Request.Path,
+                dbEx.InnerException?.Message ?? dbEx.Message);
             await WriteResponseAsync(context, new ApiErrorResponse(
                 (int)HttpStatusCode.Conflict,
                 "No se pudo completar la operación porque entra en conflicto con datos existentes."

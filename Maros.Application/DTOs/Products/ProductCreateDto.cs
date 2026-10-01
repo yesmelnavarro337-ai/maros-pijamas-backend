@@ -8,6 +8,7 @@ public record ProductCreateDto
     public string Name { get; set; } = string.Empty;
 
     public List<Guid> CategoryIds { get; set; } = new();
+    public List<CategoryPriceInputDto>? CategoryPrices { get; set; }
 
     [Required]
     public string Description { get; set; } = string.Empty;
@@ -27,12 +28,13 @@ public record ProductCreateDto
     [MaxLength(200)]
     public string SeoTitle { get; set; } = string.Empty;
 
-    [MaxLength(300)]
+    [MaxLength(500)]
     public string SeoDescription { get; set; } = string.Empty;
 
     public string? SeoSocialImageUrl { get; set; }
     public string? SeoAltText { get; set; }
     public List<string> ImageUrls { get; set; } = new();
+    public List<ProductImageCreateDto>? Images { get; set; }
     public List<ProductVariantInputDto> Variants { get; set; } = new();
     public List<Guid> CollectionIds { get; set; } = new();
 }

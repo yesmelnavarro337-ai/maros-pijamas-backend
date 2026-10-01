@@ -23,5 +23,6 @@ public record ProductPublicDetailDto(
     string SeoDescription,
     string? SeoSocialImageUrl,
     string? SeoAltText,
-    List<Guid> CollectionIds
+    List<Guid> CollectionIds,
+    List<ProductImageDto>? ImageDetails = null
 );

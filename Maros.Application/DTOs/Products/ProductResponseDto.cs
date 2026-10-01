@@ -28,5 +28,6 @@ public record ProductResponseDto(
     string Sku = "",
     int TotalStock = 0,
     string SeasonName = "Sin temporada",
-    string? ImageUrl = null
+    string? ImageUrl = null,
+    List<ProductImageDto>? ImageDetails = null
 );

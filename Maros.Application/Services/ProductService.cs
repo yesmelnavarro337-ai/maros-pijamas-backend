@@ -149,9 +149,9 @@ public class ProductService : IProductService
             SeoAltText = request.SeoAltText,
         };
 
-        ApplyImages(product, request.ImageUrls);
+        ApplyImages(product, request.ImageUrls, request.Images);
         ApplyVariants(product, request.Variants);
-        ApplyProductCategories(product, request.CategoryIds);
+        ApplyProductCategories(product, request.CategoryIds, request.CategoryPrices);
         ApplyCollections(product, request.CollectionIds);
 
         await _productRepository.AddAsync(product);
@@ -192,12 +192,19 @@ public class ProductService : IProductService
         product.SeoAltText = request.SeoAltText;
         product.UpdatedAt = now;
 
-        SyncImages(product, request.ImageUrls, _productRepository, now);
+        SyncImages(product, request.ImageUrls, request.Images, _productRepository, now);
         SyncVariants(product, request.Variants, _productRepository, now);
-        SyncProductCategories(product, request.CategoryIds, _productRepository);
+        SyncProductCategories(product, request.CategoryIds, request.CategoryPrices, _productRepository);
         SyncProductCollections(product, request.CollectionIds, _productRepository);
 
-        await _productRepository.SaveChangesAsync();
+        try
+        {
+            await _productRepository.SaveChangesAsync();
+        }
+        catch (Exception ex) when (ex.GetType().Name.Contains("Concurrency"))
+        {
+            throw new AppException("No se pudo actualizar el producto debido a un conflicto de concurrencia con los registros de la base de datos.", 409, ex);
+        }
 
         var updated = await _productRepository.GetByIdAsync(id);
         var seasons = await _seasonRepository.GetAllAsync();
@@ -315,8 +322,24 @@ public class ProductService : IProductService
         return sku;
     }
 
-    private static void ApplyImages(Product product, List<string> urls)
+    private static void ApplyImages(Product product, List<string> urls, List<ProductImageCreateDto>? images = null)
     {
+        if (images != null && images.Count > 0)
+        {
+            for (int i = 0; i < images.Count; i++)
+            {
+                var img = images[i];
+                product.Images.Add(new ProductImage
+                {
+                    Url = img.Url,
+                    Order = img.Order > 0 ? img.Order : i,
+                    ColorHex = string.IsNullOrWhiteSpace(img.ColorHex) ? null : img.ColorHex.Trim(),
+                    ColorName = string.IsNullOrWhiteSpace(img.ColorName) ? null : img.ColorName.Trim(),
+                });
+            }
+            return;
+        }
+
         for (int i = 0; i < urls.Count; i++)
             product.Images.Add(new ProductImage { Url = urls[i], Order = i });
     }
@@ -338,53 +361,137 @@ public class ProductService : IProductService
         }
     }
 
-    private static void ApplyProductCategories(Product product, List<Guid> categoryIds)
+    private static void ApplyProductCategories(Product product, List<Guid> categoryIds, List<CategoryPriceInputDto>? categoryPrices = null)
     {
+        var priceMap = categoryPrices?.ToDictionary(cp => cp.CategoryId, cp => cp);
         foreach (var categoryId in categoryIds.Where(id => id != Guid.Empty).Distinct())
         {
+            CategoryPriceInputDto? cp = null;
+            priceMap?.TryGetValue(categoryId, out cp);
             product.ProductCategories.Add(new ProductCategory
             {
                 ProductId = product.Id,
                 CategoryId = categoryId,
+                Price = cp?.Price,
+                SurchargeReason = string.IsNullOrWhiteSpace(cp?.SurchargeReason) ? null : cp.SurchargeReason.Trim()
             });
         }
     }
 
-    private static void SyncImages(Product product, List<string> requestImageUrls, IProductRepository repository, DateTime now)
+    private static void SyncImages(Product product, List<string> requestImageUrls, List<ProductImageUpdateDto>? requestImages, IProductRepository repository, DateTime now)
     {
-        var incomingImages = requestImageUrls
+        var existingDbImageIds = product.Images.Select(img => img.Id).ToHashSet();
+
+        if (requestImages != null && requestImages.Count > 0)
+        {
+            var validIncomingExistingImageIds = requestImages
+                .Where(img => img.Id.HasValue && img.Id.Value != Guid.Empty && existingDbImageIds.Contains(img.Id.Value))
+                .Select(img => img.Id!.Value)
+                .ToHashSet();
+
+            var imagesToRemove = product.Images
+                .Where(img => !validIncomingExistingImageIds.Contains(img.Id))
+                .ToList();
+
+            if (imagesToRemove.Count > 0)
+            {
+                repository.RemoveImagesRange(imagesToRemove);
+                foreach (var image in imagesToRemove)
+                    product.Images.Remove(image);
+            }
+
+            for (int i = 0; i < requestImages.Count; i++)
+            {
+                var dtoImage = requestImages[i];
+                int order = dtoImage.Order > 0 ? dtoImage.Order : i;
+                string? colorHex = string.IsNullOrWhiteSpace(dtoImage.ColorHex) ? null : dtoImage.ColorHex.Trim();
+                string? colorName = string.IsNullOrWhiteSpace(dtoImage.ColorName) ? null : dtoImage.ColorName.Trim();
+
+                bool isExistingInDb = dtoImage.Id.HasValue && dtoImage.Id.Value != Guid.Empty && existingDbImageIds.Contains(dtoImage.Id.Value);
+
+                if (isExistingInDb)
+                {
+                    var existing = product.Images.FirstOrDefault(img => img.Id == dtoImage.Id!.Value);
+                    if (existing != null)
+                    {
+                        existing.Url = dtoImage.Url;
+                        existing.Order = order;
+                        existing.ColorHex = colorHex;
+                        existing.ColorName = colorName;
+                        existing.UpdatedAt = now;
+                    }
+                    else
+                    {
+                        // Fallback: ID was in DTO but entity not found in collection after removal — insert as new
+                        repository.AddImage(new ProductImage
+                        {
+                            ProductId = product.Id,
+                            Url = dtoImage.Url,
+                            Order = order,
+                            ColorHex = colorHex,
+                            ColorName = colorName,
+                            CreatedAt = now,
+                            UpdatedAt = now,
+                        });
+                    }
+                }
+                else
+                {
+                    // New image: use repository.AddImage to force EntityState.Added (INSERT)
+                    repository.AddImage(new ProductImage
+                    {
+                        ProductId = product.Id,
+                        Url = dtoImage.Url,
+                        Order = order,
+                        ColorHex = colorHex,
+                        ColorName = colorName,
+                        CreatedAt = now,
+                        UpdatedAt = now,
+                    });
+                }
+            }
+            return;
+        }
+
+        var fallbackIncoming = requestImageUrls
             .Select((url, index) => new { Url = url, Order = index })
             .ToList();
-        var incomingUrls = incomingImages
+        var fallbackUrls = fallbackIncoming
             .Select(i => i.Url)
             .ToHashSet(StringComparer.Ordinal);
 
-        var imagesToRemove = product.Images
-            .Where(img => !incomingUrls.Contains(img.Url))
+        var fallbackToRemove = product.Images
+            .Where(img => !fallbackUrls.Contains(img.Url))
             .ToList();
 
-        if (imagesToRemove.Count > 0)
+        if (fallbackToRemove.Count > 0)
         {
-            repository.RemoveImagesRange(imagesToRemove);
-            foreach (var image in imagesToRemove)
+            repository.RemoveImagesRange(fallbackToRemove);
+            foreach (var image in fallbackToRemove)
                 product.Images.Remove(image);
         }
 
-        foreach (var incoming in incomingImages)
+        var usedFallbackImageIds = new HashSet<Guid>();
+
+        foreach (var incoming in fallbackIncoming)
         {
             var existing = product.Images.FirstOrDefault(img =>
-                img.Url.Equals(incoming.Url, StringComparison.Ordinal));
+                img.Url.Equals(incoming.Url, StringComparison.Ordinal) && !usedFallbackImageIds.Contains(img.Id));
 
             if (existing is not null)
             {
-                existing.Order = incoming.Order;
-                existing.UpdatedAt = now;
+                usedFallbackImageIds.Add(existing.Id);
+                if (existing.Order != incoming.Order)
+                {
+                    existing.Order = incoming.Order;
+                    existing.UpdatedAt = now;
+                }
                 continue;
             }
 
-            product.Images.Add(new ProductImage
+            // New image via fallback URL path: use repository.AddImage to force INSERT
+            repository.AddImage(new ProductImage
             {
-                Id = Guid.NewGuid(),
                 ProductId = product.Id,
                 Url = incoming.Url,
                 Order = incoming.Order,
@@ -396,12 +503,15 @@ public class ProductService : IProductService
 
     private static void SyncVariants(Product product, List<ProductVariantInputDto> requestVariants, IProductRepository repository, DateTime now)
     {
-        var incomingSkus = requestVariants
-            .Select(v => v.Sku)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var existingDbVariantIds = product.Variants.Select(v => v.Id).ToHashSet();
+
+        var validIncomingExistingVariantIds = requestVariants
+            .Where(v => v.Id.HasValue && v.Id.Value != Guid.Empty && existingDbVariantIds.Contains(v.Id.Value))
+            .Select(v => v.Id!.Value)
+            .ToHashSet();
 
         var variantsToRemove = product.Variants
-            .Where(v => !incomingSkus.Contains(v.Sku))
+            .Where(v => !validIncomingExistingVariantIds.Contains(v.Id))
             .ToList();
 
         if (variantsToRemove.Count > 0)
@@ -411,47 +521,70 @@ public class ProductService : IProductService
                 product.Variants.Remove(variant);
         }
 
-        foreach (var requestVariant in requestVariants)
+        foreach (var dtoVariant in requestVariants)
         {
-            var existing = product.Variants.FirstOrDefault(v =>
-                v.Sku.Equals(requestVariant.Sku, StringComparison.OrdinalIgnoreCase));
+            bool isExistingInDb = dtoVariant.Id.HasValue && dtoVariant.Id.Value != Guid.Empty && existingDbVariantIds.Contains(dtoVariant.Id.Value);
 
-            if (existing is not null)
+            if (isExistingInDb)
             {
-                existing.Size = requestVariant.Size;
-                existing.ColorName = requestVariant.ColorName;
-                existing.ColorHex = requestVariant.ColorHex;
-                existing.Sku = requestVariant.Sku;
-                existing.Stock = requestVariant.Stock;
-                existing.Price = requestVariant.Price;
-                existing.ImageUrl = requestVariant.ImageUrl;
-                existing.UpdatedAt = now;
-                continue;
+                var existing = product.Variants.FirstOrDefault(v => v.Id == dtoVariant.Id!.Value);
+                if (existing != null)
+                {
+                    existing.Size = dtoVariant.Size;
+                    existing.ColorName = dtoVariant.ColorName;
+                    existing.ColorHex = dtoVariant.ColorHex;
+                    existing.Sku = dtoVariant.Sku;
+                    existing.Stock = dtoVariant.Stock;
+                    existing.Price = dtoVariant.Price;
+                    existing.ImageUrl = dtoVariant.ImageUrl;
+                    existing.UpdatedAt = now;
+                }
+                else
+                {
+                    // Fallback: ID was in DTO but entity not found in collection — insert as new
+                    repository.AddVariant(new ProductVariant
+                    {
+                        ProductId = product.Id,
+                        Size = dtoVariant.Size,
+                        ColorName = dtoVariant.ColorName,
+                        ColorHex = dtoVariant.ColorHex,
+                        Sku = dtoVariant.Sku,
+                        Stock = dtoVariant.Stock,
+                        Price = dtoVariant.Price,
+                        ImageUrl = dtoVariant.ImageUrl,
+                        CreatedAt = now,
+                        UpdatedAt = now,
+                    });
+                }
             }
-
-            product.Variants.Add(new ProductVariant
+            else
             {
-                Id = Guid.NewGuid(),
-                ProductId = product.Id,
-                Size = requestVariant.Size,
-                ColorName = requestVariant.ColorName,
-                ColorHex = requestVariant.ColorHex,
-                Sku = requestVariant.Sku,
-                Stock = requestVariant.Stock,
-                Price = requestVariant.Price,
-                ImageUrl = requestVariant.ImageUrl,
-                CreatedAt = now,
-                UpdatedAt = now,
-            });
+                // New variant: use repository.AddVariant to force EntityState.Added (INSERT)
+                repository.AddVariant(new ProductVariant
+                {
+                    ProductId = product.Id,
+                    Size = dtoVariant.Size,
+                    ColorName = dtoVariant.ColorName,
+                    ColorHex = dtoVariant.ColorHex,
+                    Sku = dtoVariant.Sku,
+                    Stock = dtoVariant.Stock,
+                    Price = dtoVariant.Price,
+                    ImageUrl = dtoVariant.ImageUrl,
+                    CreatedAt = now,
+                    UpdatedAt = now,
+                });
+            }
         }
     }
 
-    private static void SyncProductCategories(Product product, List<Guid> requestCategoryIds, IProductRepository repository)
+    private static void SyncProductCategories(Product product, List<Guid> requestCategoryIds, List<CategoryPriceInputDto>? categoryPrices, IProductRepository repository)
     {
         var incomingCategoryIds = requestCategoryIds
             .Where(id => id != Guid.Empty)
             .Distinct()
             .ToHashSet();
+
+        var priceMap = categoryPrices?.ToDictionary(cp => cp.CategoryId, cp => cp);
 
         var productCategoriesToRemove = product.ProductCategories
             .Where(pc => !incomingCategoryIds.Contains(pc.CategoryId))
@@ -466,13 +599,22 @@ public class ProductService : IProductService
 
         foreach (var categoryId in incomingCategoryIds)
         {
-            if (product.ProductCategories.Any(pc => pc.CategoryId == categoryId))
+            CategoryPriceInputDto? cp = null;
+            priceMap?.TryGetValue(categoryId, out cp);
+            var existing = product.ProductCategories.FirstOrDefault(pc => pc.CategoryId == categoryId);
+            if (existing is not null)
+            {
+                existing.Price = cp?.Price;
+                existing.SurchargeReason = string.IsNullOrWhiteSpace(cp?.SurchargeReason) ? null : cp.SurchargeReason.Trim();
                 continue;
+            }
 
             product.ProductCategories.Add(new ProductCategory
             {
                 ProductId = product.Id,
                 CategoryId = categoryId,
+                Price = cp?.Price,
+                SurchargeReason = string.IsNullOrWhiteSpace(cp?.SurchargeReason) ? null : cp.SurchargeReason.Trim()
             });
         }
     }
@@ -542,6 +684,10 @@ public class ProductService : IProductService
     private static ProductPublicDetailDto ToPublicDetailDto(Product p)
     {
         var categories = GetCategorySummaries(p);
+        var imageDetails = p.Images
+            .OrderBy(i => i.Order)
+            .Select(i => new ProductImageDto(i.Id, i.Url, i.Order, i.ColorHex, i.ColorName))
+            .ToList();
 
         return new ProductPublicDetailDto(
             p.Id,
@@ -569,7 +715,8 @@ public class ProductService : IProductService
             p.SeoDescription,
             p.SeoSocialImageUrl,
             p.SeoAltText,
-            p.ProductCollections.Select(pc => pc.CollectionId).ToList()
+            p.ProductCollections.Select(pc => pc.CollectionId).ToList(),
+            imageDetails
         );
     }
 
@@ -591,6 +738,11 @@ public class ProductService : IProductService
             }
         }
 
+        var imageDetails = p.Images
+            .OrderBy(i => i.Order)
+            .Select(i => new ProductImageDto(i.Id, i.Url, i.Order, i.ColorHex, i.ColorName))
+            .ToList();
+
         return new ProductResponseDto(
             p.Id,
             p.Name,
@@ -609,14 +761,23 @@ public class ProductService : IProductService
             primarySku,
             totalStock,
             seasonName,
-            imageUrl
+            imageUrl,
+            imageDetails
         );
     }
 
     private static List<CategorySummaryDto> GetCategorySummaries(Product product) =>
         product.ProductCategories
             .Where(pc => pc.Category is not null)
-            .Select(pc => new CategorySummaryDto(pc.CategoryId, pc.Category.Name, pc.Category.Slug, pc.Category.DefaultPrice, pc.Category.SurchargeReason))
+            .Select(pc => new CategorySummaryDto(
+                pc.CategoryId,
+                pc.Category.Name,
+                pc.Category.Slug,
+                pc.Category.DefaultPrice,
+                pc.Category.SurchargeReason,
+                pc.Price,
+                pc.SurchargeReason
+            ))
             .DistinctBy(c => c.Id)
             .OrderBy(c => c.Name)
             .ToList();

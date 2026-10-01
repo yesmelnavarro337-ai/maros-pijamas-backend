@@ -8,4 +8,6 @@ public class ProductImage : BaseEntity
     public Product Product { get; set; } = null!;
     public string Url { get; set; } = string.Empty;
     public int Order { get; set; }
+    public string? ColorHex { get; set; }
+    public string? ColorName { get; set; }
 }
