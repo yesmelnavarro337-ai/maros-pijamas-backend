@@ -14,5 +14,8 @@ public record ProductPublicListDto(
     List<string> Images,
     bool Available,
     List<string> Sizes,
-    List<ProductPublicColorDto> Colors
+    List<ProductPublicColorDto> Colors,
+    // Estilo fijo predominante: las tarjetas del catálogo necesitan la tarifa
+    // exacta por estilo (Hombre/Mujer) en lugar de la de la categoría.
+    string? StyleName = null
 );

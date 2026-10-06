@@ -70,6 +70,7 @@ public class HomeSectionContentService : IHomeSectionContentService
         content.CtaLink = request.CtaLink;
         content.MainImageUrl = request.MainImageUrl;
         content.MainImageAlt = request.MainImageAlt;
+        content.CardImageUrl = request.CardImageUrl;
         content.SecondaryImagesJson = Serialize(request.SecondaryImages);
         content.TagsJson = Serialize(request.Tags);
         content.UpdatedAt = DateTime.UtcNow;
@@ -132,6 +133,7 @@ public class HomeSectionContentService : IHomeSectionContentService
         s.CtaLink,
         s.MainImageUrl,
         s.MainImageAlt,
+        s.CardImageUrl,
         Deserialize<HomeSectionImageDto>(s.SecondaryImagesJson),
         Deserialize<HomeSectionTagDto>(s.TagsJson)
     );

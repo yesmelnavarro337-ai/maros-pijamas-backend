@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Maros.Application.DTOs.Products;
 
@@ -36,5 +37,6 @@ public record ProductUpdateDto
     public List<string> ImageUrls { get; set; } = new();
     public List<ProductImageUpdateDto>? Images { get; set; }
     public List<ProductVariantInputDto> Variants { get; set; } = new();
+    public List<Guid> StyleIds { get; set; } = new();
     public List<Guid> CollectionIds { get; set; } = new();
 }

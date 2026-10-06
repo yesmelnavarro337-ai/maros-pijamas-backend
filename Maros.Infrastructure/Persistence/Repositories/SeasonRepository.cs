@@ -15,18 +15,35 @@ public class SeasonRepository : ISeasonRepository
     private IQueryable<Season> QueryWithIncludes() =>
         _context.Seasons
             .Include(s => s.Collection)
+            .Include(s => s.Images)
+            .Include(s => s.FeaturedProducts)
+                .ThenInclude(fp => fp.Product)
+                    .ThenInclude(p => p.Images);
+
+    // Consulta de solo lectura: sin tracking y en varias consultas separadas.
+    // `Images` y `FeaturedProducts` son colecciones; sin AsSplitQuery EF las
+    // materializa en un único JOIN con explosión cartesiana (n1 x n2 x n3 filas).
+    private IQueryable<Season> ReadOnlyQuery() =>
+        _context.Seasons
+            .AsNoTracking()
+            .AsSplitQuery()
+            .Include(s => s.Collection)
+            .Include(s => s.Images)
             .Include(s => s.FeaturedProducts)
                 .ThenInclude(fp => fp.Product)
                     .ThenInclude(p => p.Images);
 
     public Task<List<Season>> GetAllAsync() =>
-        QueryWithIncludes().OrderByDescending(s => s.StartDate).ToListAsync();
+        ReadOnlyQuery().OrderByDescending(s => s.StartDate).ToListAsync();
 
     public Task<Season?> GetByIdAsync(Guid id) =>
         QueryWithIncludes().FirstOrDefaultAsync(s => s.Id == id);
 
+    public Task<Season?> GetByIdReadOnlyAsync(Guid id) =>
+        ReadOnlyQuery().FirstOrDefaultAsync(s => s.Id == id);
+
     public Task<Season?> GetActiveAsync() =>
-        QueryWithIncludes().FirstOrDefaultAsync(s => s.Status == SeasonStatus.Activa);
+        ReadOnlyQuery().FirstOrDefaultAsync(s => s.Status == SeasonStatus.Activa);
 
     public Task<bool> SlugExistsAsync(string slug, Guid? excludeId = null) =>
         _context.Seasons.AnyAsync(s => s.Slug == slug && (excludeId == null || s.Id != excludeId));
@@ -43,6 +60,12 @@ public class SeasonRepository : ISeasonRepository
 
     public void Remove(Season season) =>
         _context.Seasons.Remove(season);
+
+    public void RemoveImage(SeasonImage image) =>
+        _context.SeasonImages.Remove(image);
+
+    public void AddImage(SeasonImage image) =>
+        _context.SeasonImages.Add(image);
 
     public Task SaveChangesAsync() =>
         _context.SaveChangesAsync();

@@ -28,5 +28,11 @@ public class SeasonConfiguration : IEntityTypeConfiguration<Season>
             .WithMany(c => c.Seasons)
             .HasForeignKey(s => s.CollectionId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Al borrar una temporada se van sus imágenes con ella.
+        builder.HasMany(s => s.Images)
+            .WithOne(i => i.Season)
+            .HasForeignKey(i => i.SeasonId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

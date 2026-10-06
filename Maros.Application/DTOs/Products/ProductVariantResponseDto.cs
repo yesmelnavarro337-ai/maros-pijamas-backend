@@ -7,6 +7,9 @@ public record ProductVariantResponseDto(
     string ColorHex,
     string Sku,
     int Stock,
-    decimal? Price,
-    string? ImageUrl
+    bool IsAvailable = true,
+    decimal? Price = null,
+    string? ImageUrl = null,
+    string? StyleName = null,
+    string? MaterialName = null
 );

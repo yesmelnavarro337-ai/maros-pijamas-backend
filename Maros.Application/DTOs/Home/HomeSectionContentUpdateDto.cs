@@ -17,6 +17,7 @@ public record HomeSectionContentUpdateDto(
     [MaxLength(300)] string? CtaLink = null,
     [MaxLength(500)] string? MainImageUrl = null,
     [MaxLength(180)] string? MainImageAlt = null,
+    [MaxLength(500)] string? CardImageUrl = null,
     List<HomeSectionImageDto>? SecondaryImages = null,
     List<HomeSectionTagDto>? Tags = null
 );

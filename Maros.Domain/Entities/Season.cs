@@ -27,4 +27,5 @@ public class Season : BaseEntity
     public string CtaLink { get; set; } = string.Empty;
 
     public ICollection<SeasonFeaturedProduct> FeaturedProducts { get; set; } = new List<SeasonFeaturedProduct>();
+    public ICollection<SeasonImage> Images { get; set; } = new List<SeasonImage>();
 }

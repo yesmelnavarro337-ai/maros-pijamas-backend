@@ -14,6 +14,7 @@ public record SeasonCreateDto(
     [Required] SeasonColorsDto Colors,
     [MaxLength(60)] string CtaText,
     [MaxLength(200)] string CtaLink,
-    List<Guid> FeaturedProductIds,
-    string? Status = null
+List<Guid> FeaturedProductIds,
+    string? Status = null,
+    List<SeasonImageInputDto>? Images = null
 );

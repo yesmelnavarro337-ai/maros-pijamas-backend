@@ -122,4 +122,117 @@ public class SeasonServiceTests
         Assert.Equal(DateTimeKind.Utc, addedSeason.EndDate.Kind);
         Assert.Equal(DateTimeKind.Utc, addedSeason.CreatedAt.Kind);
     }
+
+    private (SeasonUpdateDto Request, Collection Collection, Season Season) SetUpUpdate()
+    {
+        var collection = new Collection { Id = Guid.NewGuid() };
+        var season = new Season { Id = Guid.NewGuid(), Collection = collection };
+
+        _collectionRepository.Setup(r => r.GetByIdAsync(collection.Id)).ReturnsAsync(collection);
+        _seasonRepository.Setup(r => r.SlugExistsAsync(It.IsAny<string>(), It.IsAny<Guid?>())).ReturnsAsync(false);
+        _seasonRepository.Setup(r => r.GetByIdAsync(season.Id)).ReturnsAsync(season);
+        _seasonRepository.Setup(r => r.GetByIdReadOnlyAsync(season.Id)).ReturnsAsync(season);
+
+        var request = new SeasonUpdateDto(
+            "Verano", collection.Id,
+            new DateTime(2026, 6, 1), new DateTime(2026, 8, 31),
+            "Verano 2026", "Subtítulo", null, null,
+            new SeasonColorsDto("#FFFFFF", "#000000", "#CCCCCC"),
+            "CTA", "/link", new List<Guid>(), null, new List<SeasonImageInputDto>()
+        );
+
+        return (request, collection, season);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_ImagesDesconocidas_CreaEntidadesNuevasSinTocarFilasInexistentes()
+    {
+        var (request, _, season) = SetUpUpdate();
+        var idFantasma = Guid.NewGuid();
+
+        // El cliente manda un Id que no existe en la base de datos. Antes esto
+        // terminaba en UPDATE sobre una fila inexistente -> DbUpdateConcurrencyException.
+        request = request with
+        {
+            Images = new List<SeasonImageInputDto>
+            {
+                new(idFantasma, "https://cdn/a.jpg", 0, true),
+                new(null, "https://cdn/b.jpg", 1, false),
+            }
+        };
+
+        await _sut.UpdateAsync(season.Id, request);
+
+        Assert.Equal(2, season.Images.Count);
+        // Ninguna entidad debe adoptar el Id fantasma.
+        Assert.DoesNotContain(season.Images, i => i.Id == idFantasma);
+        Assert.All(season.Images, i => Assert.NotEqual(Guid.Empty, i.Id));
+    }
+
+    [Fact]
+    public async Task UpdateAsync_ReutilizaIdsExistentesYEliminaLasAusentes()
+    {
+        var (request, _, season) = SetUpUpdate();
+
+        var conservada = new SeasonImage { Id = Guid.NewGuid(), SeasonId = season.Id, ImageUrl = "https://cdn/vieja.jpg", Order = 0, IsPrimary = true };
+        var descartada = new SeasonImage { Id = Guid.NewGuid(), SeasonId = season.Id, ImageUrl = "https://cdn/borrar.jpg", Order = 1 };
+        season.Images.Add(conservada);
+        season.Images.Add(descartada);
+
+        request = request with
+        {
+            Images = new List<SeasonImageInputDto>
+            {
+                new(conservada.Id, "https://cdn/nueva.jpg", 0, true),
+                new(null, "https://cdn/agregada.jpg", 1, false),
+            }
+        };
+
+        await _sut.UpdateAsync(season.Id, request);
+
+        // La existente se actualizó en el sitio (misma identidad de EF).
+        Assert.Equal("https://cdn/nueva.jpg", conservada.ImageUrl);
+        Assert.Contains(season.Images, i => i.ImageUrl == "https://cdn/agregada.jpg");
+        Assert.DoesNotContain(season.Images, i => i.Id == descartada.Id);
+        Assert.DoesNotContain(season.Images, i => i.ImageUrl == "https://cdn/borrar.jpg");
+
+        // El borrado pasa explícitamente por el DbSet, no solo por la colección.
+        _seasonRepository.Verify(r => r.RemoveImage(descartada), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_GarantizaUnaSolaPortadaYOrdenContiguo()
+    {
+        var (request, _, season) = SetUpUpdate();
+
+        request = request with
+        {
+            Images = new List<SeasonImageInputDto>
+            {
+                new(null, "https://cdn/1.jpg", 5, false),
+                new(null, "https://cdn/2.jpg", 9, false),
+                new(null, "https://cdn/3.jpg", 1, true),
+            }
+        };
+
+        await _sut.UpdateAsync(season.Id, request);
+
+        // Orden 0..n-1 tras renumerar, y una sola portada.
+        Assert.Equal(new[] { 0, 1, 2 }, season.Images.Select(i => i.Order).OrderBy(o => o).ToArray());
+        Assert.Single(season.Images, i => i.IsPrimary);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_ImagesNull_NoTocaLaGaleriaExistente()
+    {
+        var (request, _, season) = SetUpUpdate();
+        var existente = new SeasonImage { Id = Guid.NewGuid(), SeasonId = season.Id, ImageUrl = "https://cdn/keep.jpg", Order = 0, IsPrimary = true };
+        season.Images.Add(existente);
+
+        await _sut.UpdateAsync(season.Id, request with { Images = null });
+
+        Assert.Single(season.Images);
+        Assert.Equal("https://cdn/keep.jpg", existente.ImageUrl);
+        _seasonRepository.Verify(r => r.RemoveImage(It.IsAny<SeasonImage>()), Times.Never);
+    }
 }

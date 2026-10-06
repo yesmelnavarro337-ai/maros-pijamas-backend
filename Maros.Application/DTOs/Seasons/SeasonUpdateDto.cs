@@ -15,5 +15,6 @@ public record SeasonUpdateDto(
     [MaxLength(60)] string CtaText,
     [MaxLength(200)] string CtaLink,
     List<Guid> FeaturedProductIds,
-    string? Status = null
+    string? Status = null,
+    List<SeasonImageInputDto>? Images = null
 );

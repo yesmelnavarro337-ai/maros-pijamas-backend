@@ -24,7 +24,7 @@ public class CollectionService : ICollectionService
 
     public async Task<CollectionResponseDto> GetByIdAsync(Guid id)
     {
-        var collection = await _collectionRepository.GetByIdAsync(id)
+        var collection = await _collectionRepository.GetByIdReadOnlyAsync(id)
             ?? throw new AppException("Colección no encontrada.", 404);
         return ToDto(collection);
     }

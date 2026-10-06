@@ -60,6 +60,13 @@ public class HomeSectionContent : BaseEntity
     public string? MainImageAlt { get; set; }
 
     /// <summary>
+    /// Imagen de la tarjeta promocional del bloque de pasos (p. ej. "Personaliza tu
+    /// pijama en 4 pasos"). Es un slot independiente de <see cref="MainImageUrl"/>,
+    /// que en la sección <c>personalize</c> alimenta el banner del carrusel del Home.
+    /// </summary>
+    public string? CardImageUrl { get; set; }
+
+    /// <summary>
     /// Imágenes secundarias serializadas como JSON (p. ej. las 2 de "Colección Destacada").
     /// </summary>
     public string? SecondaryImagesJson { get; set; }

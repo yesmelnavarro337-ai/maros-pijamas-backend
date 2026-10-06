@@ -6,5 +6,7 @@ public record ProductPublicVariantDto(
     string ColorHex,
     bool Available,
     int Stock,
-    decimal? Price
+    decimal? Price,
+    string? StyleName = null,
+    string? MaterialName = null
 );

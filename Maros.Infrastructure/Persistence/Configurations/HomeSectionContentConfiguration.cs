@@ -23,5 +23,6 @@ public class HomeSectionContentConfiguration : IEntityTypeConfiguration<HomeSect
         builder.Property(s => s.CtaLink).HasMaxLength(300);
         builder.Property(s => s.MainImageUrl).HasMaxLength(500);
         builder.Property(s => s.MainImageAlt).HasMaxLength(180);
+        builder.Property(s => s.CardImageUrl).HasMaxLength(500);
     }
 }

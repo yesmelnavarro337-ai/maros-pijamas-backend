@@ -19,7 +19,9 @@ public class ProductRepository : IProductRepository
                 .ThenInclude(pc => pc.Category)
             .Include(p => p.Images)
             .Include(p => p.Variants)
-            .Include(p => p.ProductCollections);
+            .Include(p => p.ProductCollections)
+            .Include(p => p.ProductStyles)
+                .ThenInclude(ps => ps.Style);
 
     public IQueryable<Product> QueryAll() => QueryWithIncludes();
 
@@ -74,7 +76,20 @@ public class ProductRepository : IProductRepository
             query = query.Where(p => p.ProductCollections.Any(pc => pc.CollectionId == collectionId.Value));
 
         if (!string.IsNullOrWhiteSpace(search))
-            query = query.Where(p => p.Name.Contains(search));
+        {
+            // Coincidencia global para el buscador de la tienda: título,
+            // descripción, categorías, estilos, telas/materiales y colores.
+            var term = search.Trim();
+            query = query.Where(p =>
+                p.Name.Contains(term) ||
+                p.Description.Contains(term) ||
+                p.ProductCategories.Any(pc => pc.Category.Name.Contains(term)) ||
+                p.ProductStyles.Any(ps => ps.Style.Name.Contains(term)) ||
+                p.Variants.Any(v =>
+                    (v.MaterialName != null && v.MaterialName.Contains(term)) ||
+                    (v.StyleName != null && v.StyleName.Contains(term)) ||
+                    v.ColorName.Contains(term)));
+        }
 
         return query.OrderByDescending(p => p.CreatedAt).ToListAsync();
     }

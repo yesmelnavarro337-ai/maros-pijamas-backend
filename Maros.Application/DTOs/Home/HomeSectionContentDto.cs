@@ -12,6 +12,7 @@ public record HomeSectionContentDto(
     string? CtaLink,
     string? MainImageUrl,
     string? MainImageAlt,
+    string? CardImageUrl,
     List<HomeSectionImageDto> SecondaryImages,
     List<HomeSectionTagDto> Tags
 );

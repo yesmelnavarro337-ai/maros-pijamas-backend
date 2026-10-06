@@ -1,3 +1,4 @@
+using Maros.Application.Common;
 using Maros.Domain.Entities;
 using Maros.Domain.Enums;
 using Maros.Domain.Interfaces;
@@ -12,35 +13,48 @@ public class CollectionRepository : ICollectionRepository
 
     public CollectionRepository(MarosDbContext context) => _context = context;
 
-    private IQueryable<Collection> QueryWithIncludes() =>
+private IQueryable<Collection> QueryWithIncludes() =>
         _context.Collections
             .Include(c => c.Seasons)
             .Include(c => c.ProductCollections)
                 .ThenInclude(pc => pc.Product)
                     .ThenInclude(p => p.Images);
 
+    private IQueryable<Collection> ReadOnlyQuery() =>
+        _context.Collections
+            .AsNoTracking()
+            .AsSplitQuery()
+            .Include(c => c.Seasons)
+            .Include(c => c.ProductCollections)
+                .ThenInclude(pc => pc.Product)
+                    .ThenInclude(p => p.Images);
+
     public Task<List<Collection>> GetAllAsync() =>
-        QueryWithIncludes().OrderBy(c => c.Name).ToListAsync();
+        ReadOnlyQuery().OrderBy(c => c.Name).ToListAsync();
 
     public Task<Collection?> GetByIdAsync(Guid id) =>
         QueryWithIncludes().FirstOrDefaultAsync(c => c.Id == id);
 
+    public Task<Collection?> GetByIdReadOnlyAsync(Guid id) =>
+        ReadOnlyQuery().FirstOrDefaultAsync(c => c.Id == id);
+
     public async Task<Collection?> GetActiveViaSeasonAsync()
     {
-        // Consulta mínima de solo lectura sobre Seasons — el CRUD completo
+        // Consulta mínima de solo lectura sobre Seasons �?" el CRUD completo
         // de Temporadas (crear, editar, activar) se construye en Fase 8.
         var activeSeason = await _context.Seasons
+            .AsNoTracking()
             .Where(s => s.Status == SeasonStatus.Activa)
             .Select(s => s.CollectionId)
             .FirstOrDefaultAsync();
 
         if (activeSeason == Guid.Empty) return null;
 
-        return await QueryWithIncludes().FirstOrDefaultAsync(c => c.Id == activeSeason);
+        return await ReadOnlyQuery().FirstOrDefaultAsync(c => c.Id == activeSeason);
     }
 
     public Task<Collection?> GetDefaultAsync() =>
-        QueryWithIncludes().FirstOrDefaultAsync(c => c.IsDefault);
+        ReadOnlyQuery().FirstOrDefaultAsync(c => c.IsDefault);
 
     public async Task ClearDefaultFlagsAsync()
     {

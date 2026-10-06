@@ -24,6 +24,7 @@ public record ProductResponseDto(
     List<string> Images,
     List<ProductVariantResponseDto> Variants,
     List<Guid> CollectionIds,
+    List<Guid> StyleIds,
     DateTime CreatedAt,
     string Sku = "",
     int TotalStock = 0,

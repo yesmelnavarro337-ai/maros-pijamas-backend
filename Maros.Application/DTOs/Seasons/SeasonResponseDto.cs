@@ -19,5 +19,6 @@ public record SeasonResponseDto(
     List<Guid> FeaturedProductIds,
     bool IsActive = false,
     string? CoverImageUrl = null,
-    int ProductsCount = 0
+    int ProductsCount = 0,
+    List<SeasonImageDto>? Images = null
 );

@@ -36,5 +36,6 @@ public record ProductCreateDto
     public List<string> ImageUrls { get; set; } = new();
     public List<ProductImageCreateDto>? Images { get; set; }
     public List<ProductVariantInputDto> Variants { get; set; } = new();
+    public List<Guid> StyleIds { get; set; } = new();
     public List<Guid> CollectionIds { get; set; } = new();
 }

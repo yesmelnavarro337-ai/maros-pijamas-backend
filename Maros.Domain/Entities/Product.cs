@@ -22,8 +22,9 @@ public class Product : BaseEntity
     public string? SeoSocialImageUrl { get; set; }
     public string? SeoAltText { get; set; }
 
-    public ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
+public ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
     public ICollection<ProductVariant> Variants { get; set; } = new List<ProductVariant>();
     public ICollection<ProductCategory> ProductCategories { get; set; } = new List<ProductCategory>();
     public ICollection<ProductCollection> ProductCollections { get; set; } = new List<ProductCollection>();
+    public ICollection<ProductStyle> ProductStyles { get; set; } = new List<ProductStyle>();
 }

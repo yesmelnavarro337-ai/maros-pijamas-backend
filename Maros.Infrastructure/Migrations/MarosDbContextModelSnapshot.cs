@@ -417,6 +417,10 @@ namespace Maros.Infrastructure.Migrations
                         .HasMaxLength(600)
                         .HasColumnType("character varying(600)");
 
+                    b.Property<string>("CardImageUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -691,6 +695,21 @@ namespace Maros.Infrastructure.Migrations
                     b.ToTable("ProductImages");
                 });
 
+            modelBuilder.Entity("Maros.Domain.Entities.ProductStyle", b =>
+                {
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("StyleId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("ProductId", "StyleId");
+
+                    b.HasIndex("StyleId");
+
+                    b.ToTable("ProductStyles", (string)null);
+                });
+
             modelBuilder.Entity("Maros.Domain.Entities.ProductVariant", b =>
                 {
                     b.Property<Guid>("Id")
@@ -713,6 +732,15 @@ namespace Maros.Infrastructure.Migrations
                     b.Property<string>("ImageUrl")
                         .HasColumnType("text");
 
+                    b.Property<bool>("IsAvailable")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("MaterialName")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
                     b.Property<decimal?>("Price")
                         .HasColumnType("numeric(12,2)");
 
@@ -730,7 +758,13 @@ namespace Maros.Infrastructure.Migrations
                         .HasColumnType("character varying(60)");
 
                     b.Property<int>("Stock")
-                        .HasColumnType("integer");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(100);
+
+                    b.Property<string>("StyleName")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -956,6 +990,42 @@ namespace Maros.Infrastructure.Migrations
                     b.HasIndex("ProductId");
 
                     b.ToTable("SeasonFeaturedProducts");
+                });
+
+            modelBuilder.Entity("Maros.Domain.Entities.SeasonImage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsPrimary")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("SeasonId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SeasonId")
+                        .IsUnique()
+                        .HasFilter("\"IsPrimary\" = true");
+
+                    b.HasIndex("SeasonId", "Order");
+
+                    b.ToTable("SeasonImages");
                 });
 
             modelBuilder.Entity("Maros.Domain.Entities.SiteSettings", b =>
@@ -1191,6 +1261,53 @@ namespace Maros.Infrastructure.Migrations
                     b.ToTable("SiteSettings");
                 });
 
+            modelBuilder.Entity("Maros.Domain.Entities.Style", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("HexCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<int>("Line")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Slug")
+                        .IsUnique();
+
+                    b.ToTable("Styles", (string)null);
+                });
+
             modelBuilder.Entity("Maros.Domain.Entities.Testimonial", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1408,6 +1525,25 @@ namespace Maros.Infrastructure.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("Maros.Domain.Entities.ProductStyle", b =>
+                {
+                    b.HasOne("Maros.Domain.Entities.Product", "Product")
+                        .WithMany("ProductStyles")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Maros.Domain.Entities.Style", "Style")
+                        .WithMany("ProductStyles")
+                        .HasForeignKey("StyleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+
+                    b.Navigation("Style");
+                });
+
             modelBuilder.Entity("Maros.Domain.Entities.ProductVariant", b =>
                 {
                     b.HasOne("Maros.Domain.Entities.Product", "Product")
@@ -1508,6 +1644,17 @@ namespace Maros.Infrastructure.Migrations
                     b.Navigation("Season");
                 });
 
+            modelBuilder.Entity("Maros.Domain.Entities.SeasonImage", b =>
+                {
+                    b.HasOne("Maros.Domain.Entities.Season", "Season")
+                        .WithMany("Images")
+                        .HasForeignKey("SeasonId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Season");
+                });
+
             modelBuilder.Entity("Maros.Domain.Entities.UserAuditLog", b =>
                 {
                     b.HasOne("Maros.Domain.Entities.User", "User")
@@ -1544,6 +1691,8 @@ namespace Maros.Infrastructure.Migrations
 
                     b.Navigation("ProductCollections");
 
+                    b.Navigation("ProductStyles");
+
                     b.Navigation("Variants");
                 });
 
@@ -1562,6 +1711,13 @@ namespace Maros.Infrastructure.Migrations
             modelBuilder.Entity("Maros.Domain.Entities.Season", b =>
                 {
                     b.Navigation("FeaturedProducts");
+
+                    b.Navigation("Images");
+                });
+
+            modelBuilder.Entity("Maros.Domain.Entities.Style", b =>
+                {
+                    b.Navigation("ProductStyles");
                 });
 #pragma warning restore 612, 618
         }

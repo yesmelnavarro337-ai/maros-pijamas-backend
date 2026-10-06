@@ -26,6 +26,7 @@ public static class DependencyInjection
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<IProductRepository, ProductRepository>();
         services.AddScoped<ICollectionRepository, CollectionRepository>();
+        services.AddScoped<IStyleRepository, StyleRepository>();
         services.AddScoped<ISeasonRepository, SeasonRepository>();
         services.AddScoped<ICustomizationOptionRepository, CustomizationOptionRepository>();
         services.AddScoped<ICustomerRepository, CustomerRepository>();

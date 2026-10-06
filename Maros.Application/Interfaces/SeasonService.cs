@@ -27,7 +27,7 @@ public class SeasonService : ISeasonService
 
     public async Task<SeasonResponseDto> GetByIdAsync(Guid id)
     {
-        var season = await _seasonRepository.GetByIdAsync(id)
+        var season = await _seasonRepository.GetByIdReadOnlyAsync(id)
             ?? throw new AppException("Temporada no encontrada.", 404);
         return ToDto(season);
     }
@@ -73,6 +73,7 @@ public class SeasonService : ISeasonService
         };
 
         ApplyFeaturedProducts(season, request.FeaturedProductIds);
+        SyncSeasonImages(season, request.Images);
 
         await _seasonRepository.AddAsync(season);
         await _seasonRepository.SaveChangesAsync();
@@ -122,10 +123,15 @@ public class SeasonService : ISeasonService
         season.UpdatedAt = DateTime.UtcNow;
 
         SyncFeaturedProducts(season, request.FeaturedProductIds);
+        SyncSeasonImages(season, request.Images);
 
+        // El SaveChanges se delega al repositorio, que traduce cualquier
+        // DbUpdateConcurrencyException a AppException(409) en la frontera EF.
         await _seasonRepository.SaveChangesAsync();
 
-        var updated = await _seasonRepository.GetByIdAsync(id);
+        // Relectura con AsNoTracking: el contexto ya guardó, solo queremos la
+        // proyección final sin coste de seguimiento.
+        var updated = await _seasonRepository.GetByIdReadOnlyAsync(id);
         return ToDto(updated!);
     }
 
@@ -174,6 +180,11 @@ public class SeasonService : ISeasonService
             ))
             .ToList();
 
+        var images = season.Images
+            .OrderBy(i => i.Order)
+            .Select(ToImageDto)
+            .ToList();
+
         return new SeasonPublicResponseDto(
             season.Name,
             season.HeroTitle,
@@ -183,7 +194,8 @@ public class SeasonService : ISeasonService
             new SeasonColorsDto(season.ColorPrimary, season.ColorAccent, season.ColorBackground),
             season.CtaText,
             season.CtaLink,
-            featuredProducts
+            featuredProducts,
+            images
         );
     }
 
@@ -266,6 +278,98 @@ public class SeasonService : ISeasonService
         }
     }
 
+    /// <summary>
+    /// Reconcilia la colección de imágenes con lo que envía el admin.
+    ///
+    /// Reglas:
+    /// - <c>null</c> significa "no tocar": una actualización parcial no borra imágenes.
+    /// - Se reutiliza la fila existente cuando viene su Id, y se elimina la que sobra.
+    /// - Order se renumera denso (0..n-1) para que el carrusel nunca tenga huecos.
+    /// - Solo una imagen puede ser portada: si el cliente marca varias gana la primera,
+    ///   y si no marca ninguna la primera de la lista asume el papel.
+    /// </summary>
+    private void SyncSeasonImages(Season season, List<SeasonImageInputDto>? inputs)
+    {
+        if (inputs is null) return;
+
+        // 1) Normaliza la entrada: descarta URLs vacías y ordena por Order (o por
+        //    la posición en el DTO cuando Order no viene).
+        var desired = inputs
+            .Where(i => !string.IsNullOrWhiteSpace(i.ImageUrl))
+            .Select((input, index) => new { input, index })
+            .OrderBy(x => x.input.Order ?? x.index)
+            .ThenBy(x => x.index)
+            .Select(x => x.input)
+            .ToList();
+
+        // 2) Invariante de portada: exactamente una IsPrimary. Si el DTO no marca
+        //    ninguna, la primera de la lista la asume.
+        if (desired.Count > 0 && !desired.Any(i => i.IsPrimary))
+        {
+            desired[0] = desired[0] with { IsPrimary = true };
+        }
+
+        // 3) Solo se reutilizan imágenes que EF ya tiene rastreadas y que existen en
+        //    la base de datos. Un Id desconocido genera una entidad nueva con Id
+        //    propio. Se fuerza EntityState.Added a continuación para evitar que EF
+        //    marque la imagen como Modified y emita un UPDATE que afecta 0 filas
+        //    (lo que provocaría 409).
+        var existingById = season.Images.ToDictionary(i => i.Id);
+        var keptIds = new HashSet<Guid>();
+        var primaryAssigned = false;
+
+        for (var position = 0; position < desired.Count; position++)
+        {
+            var input = desired[position];
+
+            var isPrimary = input.IsPrimary && !primaryAssigned;
+            if (isPrimary) primaryAssigned = true;
+
+            SeasonImage entity;
+            if (input.Id.HasValue
+                && input.Id.Value != Guid.Empty
+                && existingById.TryGetValue(input.Id.Value, out var found))
+            {
+                // Imagen existente: se actualizan sus propiedades en el sitio.
+                entity = found;
+            }
+            else
+            {
+                // Imagen nueva: se registra explícitamente en el DbSet como Added
+                // para que EF emita un INSERT en lugar de un UPDATE que afectaría
+                // 0 filas y provocaría DbUpdateConcurrencyException (409).
+                entity = new SeasonImage
+                {
+                    Id = Guid.NewGuid(),
+                    SeasonId = season.Id,
+                    CreatedAt = DateTime.UtcNow,
+                };
+                _seasonRepository.AddImage(entity);
+                if (!season.Images.Contains(entity))
+                {
+                    season.Images.Add(entity);
+                }
+            }
+
+            entity.ImageUrl = input.ImageUrl.Trim();
+            entity.Order = position;
+            entity.IsPrimary = isPrimary;
+            entity.UpdatedAt = DateTime.UtcNow;
+
+            keptIds.Add(entity.Id);
+        }
+
+        // 4) Las imágenes que el DTO ya no incluye se eliminan explícitamente del
+        //    DbSet para que EF las borre y no las deje huérfanas.
+        foreach (var orphan in season.Images.Where(i => !keptIds.Contains(i.Id)).ToList())
+        {
+            _seasonRepository.RemoveImage(orphan);
+            season.Images.Remove(orphan);
+        }
+    }
+
+    private static SeasonImageDto ToImageDto(SeasonImage i) => new(i.Id, i.ImageUrl, i.Order, i.IsPrimary);
+
     private static SeasonResponseDto ToDto(Season s) => new(
         s.Id,
         s.Name,
@@ -284,7 +388,11 @@ public class SeasonService : ISeasonService
         s.CtaLink,
         s.FeaturedProducts != null ? s.FeaturedProducts.Select(fp => fp.ProductId).ToList() : new List<Guid>(),
         s.Status == Domain.Enums.SeasonStatus.Activa,
-        s.BannerImageUrl ?? s.HeroImageUrl,
-        s.FeaturedProducts != null ? s.FeaturedProducts.Count : 0
+        // La portada multi-imagen manda; los campos legacy siguen siendo el fallback.
+        s.Images?.FirstOrDefault(i => i.IsPrimary)?.ImageUrl ?? s.BannerImageUrl ?? s.HeroImageUrl,
+        s.FeaturedProducts != null ? s.FeaturedProducts.Count : 0,
+        s.Images != null
+            ? s.Images.OrderBy(i => i.Order).Select(ToImageDto).ToList()
+            : new List<SeasonImageDto>()
     );
 }

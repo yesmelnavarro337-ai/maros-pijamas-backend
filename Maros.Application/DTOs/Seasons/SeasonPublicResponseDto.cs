@@ -11,5 +11,6 @@ public record SeasonPublicResponseDto(
     SeasonColorsDto Colors,
     string CtaText,
     string CtaLink,
-    List<ProductSummaryDto> FeaturedProducts
+    List<ProductSummaryDto> FeaturedProducts,
+    List<SeasonImageDto> Images
 );

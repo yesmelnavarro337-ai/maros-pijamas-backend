@@ -20,6 +20,9 @@
             a estado "Finalizada".
             </summary>
         </member>
+        <member name="M:Maros.Api.Controllers.StylesController.GetAll(System.Boolean)">
+            <summary>Catálogo de estilos disponibles para maros-admin y maros-web.</summary>
+        </member>
         <member name="T:Program">
             <summary>
             Auto-generated public partial Program class for top-level statement apps.

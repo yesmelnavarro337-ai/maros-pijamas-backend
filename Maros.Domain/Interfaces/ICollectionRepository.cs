@@ -6,6 +6,7 @@ public interface ICollectionRepository
 {
     Task<List<Collection>> GetAllAsync();
     Task<Collection?> GetByIdAsync(Guid id);
+    Task<Collection?> GetByIdReadOnlyAsync(Guid id);
     Task<Collection?> GetActiveViaSeasonAsync();
     Task<Collection?> GetDefaultAsync();
     Task ClearDefaultFlagsAsync();

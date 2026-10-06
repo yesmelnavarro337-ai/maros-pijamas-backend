@@ -13,17 +13,20 @@ public class ProductService : IProductService
     private readonly IProductRepository _productRepository;
     private readonly ICategoryRepository _categoryRepository;
     private readonly ISeasonRepository _seasonRepository;
+    private readonly IStyleRepository _styleRepository;
     private readonly IPaginationService _paginationService;
 
     public ProductService(
         IProductRepository productRepository,
         ICategoryRepository categoryRepository,
         ISeasonRepository seasonRepository,
+        IStyleRepository styleRepository,
         IPaginationService paginationService)
     {
         _productRepository = productRepository;
         _categoryRepository = categoryRepository;
         _seasonRepository = seasonRepository;
+        _styleRepository = styleRepository;
         _paginationService = paginationService;
     }
 
@@ -118,6 +121,7 @@ public class ProductService : IProductService
     {
         var product = await _productRepository.GetByIdAsync(id)
             ?? throw new AppException("Producto no encontrado.", 404);
+
         var seasons = await _seasonRepository.GetAllAsync();
         return ToDto(product, seasons);
     }
@@ -153,6 +157,7 @@ public class ProductService : IProductService
         ApplyVariants(product, request.Variants);
         ApplyProductCategories(product, request.CategoryIds, request.CategoryPrices);
         ApplyCollections(product, request.CollectionIds);
+        await ApplyStylesAsync(product, request.StyleIds);
 
         await _productRepository.AddAsync(product);
         await _productRepository.SaveChangesAsync();
@@ -194,6 +199,10 @@ public class ProductService : IProductService
 
         SyncImages(product, request.ImageUrls, request.Images, _productRepository, now);
         SyncVariants(product, request.Variants, _productRepository, now);
+
+        // Sync Styles from DTO to product styles collection
+        await SyncStylesAsync(product, request.StyleIds);
+
         SyncProductCategories(product, request.CategoryIds, request.CategoryPrices, _productRepository);
         SyncProductCollections(product, request.CollectionIds, _productRepository);
 
@@ -237,11 +246,17 @@ public class ProductService : IProductService
     public async Task<List<DTOs.Common.ProductSummaryDto>> GetFeaturedHomeAsync()
     {
         var products = await _productRepository.GetFeaturedHomeAsync();
-        return products.Select(p => new DTOs.Common.ProductSummaryDto(
-            p.Id, p.Name, p.Slug, p.BasePrice,
-            p.Images.OrderBy(i => i.Order).Select(i => i.Url).FirstOrDefault(),
-            p.Images.OrderBy(i => i.Order).Select(i => i.Url).ToList()
-        )).ToList();
+        return products.Select(p =>
+        {
+            var categories = GetCategorySummaries(p);
+            return new DTOs.Common.ProductSummaryDto(
+                p.Id, p.Name, p.Slug, p.BasePrice,
+                p.Images.OrderBy(i => i.Order).Select(i => i.Url).FirstOrDefault(),
+                p.Images.OrderBy(i => i.Order).Select(i => i.Url).ToList(),
+                GetCategoryName(categories),
+                GetPrimaryStyleName(p)
+            );
+        }).ToList();
     }
 
     // ─── Helpers privados ──────────────────────────────────────────
@@ -354,9 +369,12 @@ public class ProductService : IProductService
                 ColorName = v.ColorName,
                 ColorHex = v.ColorHex,
                 Sku = v.Sku,
-                Stock = v.Stock,
+                Stock = v.ResolveStock(),
+                IsAvailable = v.ResolveIsAvailable(),
                 Price = v.Price,
                 ImageUrl = v.ImageUrl,
+                StyleName = v.StyleName,
+                MaterialName = v.MaterialName,
             });
         }
     }
@@ -534,9 +552,12 @@ public class ProductService : IProductService
                     existing.ColorName = dtoVariant.ColorName;
                     existing.ColorHex = dtoVariant.ColorHex;
                     existing.Sku = dtoVariant.Sku;
-                    existing.Stock = dtoVariant.Stock;
+                    existing.Stock = dtoVariant.ResolveStock();
+                    existing.IsAvailable = dtoVariant.ResolveIsAvailable();
                     existing.Price = dtoVariant.Price;
                     existing.ImageUrl = dtoVariant.ImageUrl;
+                    existing.StyleName = dtoVariant.StyleName;
+                    existing.MaterialName = dtoVariant.MaterialName;
                     existing.UpdatedAt = now;
                 }
                 else
@@ -549,9 +570,12 @@ public class ProductService : IProductService
                         ColorName = dtoVariant.ColorName,
                         ColorHex = dtoVariant.ColorHex,
                         Sku = dtoVariant.Sku,
-                        Stock = dtoVariant.Stock,
+                        Stock = dtoVariant.ResolveStock(),
+                        IsAvailable = dtoVariant.ResolveIsAvailable(),
                         Price = dtoVariant.Price,
                         ImageUrl = dtoVariant.ImageUrl,
+                        StyleName = dtoVariant.StyleName,
+                        MaterialName = dtoVariant.MaterialName,
                         CreatedAt = now,
                         UpdatedAt = now,
                     });
@@ -567,9 +591,12 @@ public class ProductService : IProductService
                     ColorName = dtoVariant.ColorName,
                     ColorHex = dtoVariant.ColorHex,
                     Sku = dtoVariant.Sku,
-                    Stock = dtoVariant.Stock,
+                    Stock = dtoVariant.ResolveStock(),
+                    IsAvailable = dtoVariant.ResolveIsAvailable(),
                     Price = dtoVariant.Price,
                     ImageUrl = dtoVariant.ImageUrl,
+                    StyleName = dtoVariant.StyleName,
+                    MaterialName = dtoVariant.MaterialName,
                     CreatedAt = now,
                     UpdatedAt = now,
                 });
@@ -661,6 +688,79 @@ public class ProductService : IProductService
         }
     }
 
+    /// <summary>
+    /// Resuelve los estilos solicitados contra el catálogo y valida que existan y estén activos.
+    /// Devuelve los estilos en el orden del catálogo (DisplayOrder) para una salida estable.
+    /// </summary>
+    private async Task<List<Style>> ResolveStylesAsync(List<Guid>? styleIds)
+    {
+        var distinctIds = (styleIds ?? new List<Guid>()).Distinct().ToList();
+
+        if (distinctIds.Count == 0)
+            return new List<Style>();
+
+        var styles = await _styleRepository.GetByIdsAsync(distinctIds);
+        var found = styles.Select(s => s.Id).ToHashSet();
+
+        var missing = distinctIds.Where(id => !found.Contains(id)).ToList();
+        if (missing.Count > 0)
+            throw new AppException($"Los estilos seleccionados no existen: {string.Join(", ", missing)}.", 400);
+
+        var inactive = styles.Where(s => !s.IsActive).Select(s => s.Name).ToList();
+        if (inactive.Count > 0)
+            throw new AppException($"Los estilos seleccionados están inactivos: {string.Join(", ", inactive)}.", 400);
+
+        return styles;
+    }
+
+    private static void ApplyStyles(Product product, IEnumerable<Style> styles)
+    {
+        foreach (var style in styles)
+        {
+            product.ProductStyles.Add(new ProductStyle
+            {
+                ProductId = product.Id,
+                StyleId = style.Id,
+                Style = style,
+            });
+        }
+    }
+
+    private async Task ApplyStylesAsync(Product product, List<Guid>? styleIds)
+    {
+        var styles = await ResolveStylesAsync(styleIds);
+        ApplyStyles(product, styles);
+    }
+
+    /// <summary>
+    /// Reemplaza el conjunto de estilos del producto: siempre sincroniza, de modo que una
+    /// lista vacía en el request limpia los estilos previamente guardados.
+    /// </summary>
+    private async Task SyncStylesAsync(Product product, List<Guid>? styleIds)
+    {
+        var styles = await ResolveStylesAsync(styleIds);
+        var incomingIds = styles.Select(s => s.Id).ToHashSet();
+
+        var toRemove = product.ProductStyles
+            .Where(ps => !incomingIds.Contains(ps.StyleId))
+            .ToList();
+
+        foreach (var productStyle in toRemove)
+            product.ProductStyles.Remove(productStyle);
+
+        var currentIds = product.ProductStyles.Select(ps => ps.StyleId).ToHashSet();
+
+        foreach (var style in styles.Where(s => !currentIds.Contains(s.Id)))
+        {
+            product.ProductStyles.Add(new ProductStyle
+            {
+                ProductId = product.Id,
+                StyleId = style.Id,
+                Style = style,
+            });
+        }
+    }
+
     private static ProductPublicListDto ToPublicListDto(Product p)
     {
         var categories = GetCategorySummaries(p);
@@ -675,9 +775,10 @@ public class ProductService : IProductService
             p.BasePrice,
             p.Images.OrderBy(i => i.Order).Select(i => i.Url).FirstOrDefault(),
             p.Images.OrderBy(i => i.Order).Select(i => i.Url).ToList(),
-            p.Variants.Any(v => v.Stock > 0),
+            p.Variants.Any(v => v.IsAvailable && v.Stock > 0),
             p.Variants.Select(v => v.Size).Distinct().ToList(),
-            p.Variants.Select(v => new ProductPublicColorDto(v.ColorName, v.ColorHex)).DistinctBy(c => c.Name).ToList()
+            p.Variants.Select(v => new ProductPublicColorDto(v.ColorName, v.ColorHex)).DistinctBy(c => c.Name).ToList(),
+            GetPrimaryStyleName(p)
         );
     }
 
@@ -687,6 +788,30 @@ public class ProductService : IProductService
         var imageDetails = p.Images
             .OrderBy(i => i.Order)
             .Select(i => new ProductImageDto(i.Id, i.Url, i.Order, i.ColorHex, i.ColorName))
+            .ToList();
+
+        var linkedStyles = p.ProductStyles
+            .Where(ps => ps.Style is not null && ps.Style.IsActive)
+            .OrderBy(ps => ps.Style.DisplayOrder)
+            .Select(ps => ps.Style.Name)
+            .Distinct()
+            .ToList();
+
+        // Fallback para productos migrados que solo tienen el estilo en las variantes.
+        var styles = linkedStyles.Count > 0
+            ? linkedStyles
+            : p.Variants
+                .Select(v => v.StyleName)
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .Select(s => s!)
+                .Distinct()
+                .ToList();
+
+        var materials = p.Variants
+            .Select(v => v.MaterialName)
+            .Where(m => !string.IsNullOrWhiteSpace(m))
+            .Select(m => m!)
+            .Distinct()
             .ToList();
 
         return new ProductPublicDetailDto(
@@ -706,9 +831,9 @@ public class ProductService : IProductService
                 .DistinctBy(c => c.Name)
                 .ToList(),
             p.Variants
-                .Select(v => new ProductPublicVariantDto(v.Size, v.ColorName, v.ColorHex, v.Stock > 0, v.Stock, v.Price))
+                .Select(v => new ProductPublicVariantDto(v.Size, v.ColorName, v.ColorHex, v.IsAvailable && v.Stock > 0, v.Stock, v.Price, v.StyleName, v.MaterialName))
                 .ToList(),
-            p.Variants.Any(v => v.Stock > 0),
+            p.Variants.Any(v => v.IsAvailable && v.Stock > 0),
             p.AllowCustomization,
             p.DeliveryTime,
             p.SeoTitle,
@@ -716,7 +841,14 @@ public class ProductService : IProductService
             p.SeoSocialImageUrl,
             p.SeoAltText,
             p.ProductCollections.Select(pc => pc.CollectionId).ToList(),
-            imageDetails
+            imageDetails,
+            styles,
+            p.ProductStyles
+                .Where(ps => ps.Style is not null && ps.Style.IsActive)
+                .Select(ps => ps.StyleId)
+                .Distinct()
+                .ToList(),
+            materials
         );
     }
 
@@ -755,8 +887,13 @@ public class ProductService : IProductService
             p.BasePrice, p.Status.ToString(), p.FeaturedHome, p.AllowCustomization, p.DeliveryTime,
             p.SeoTitle, p.SeoDescription, p.SeoSlug, p.SeoSocialImageUrl, p.SeoAltText,
             p.Images.OrderBy(i => i.Order).Select(i => i.Url).ToList(),
-            p.Variants.Select(v => new ProductVariantResponseDto(v.Id, v.Size, v.ColorName, v.ColorHex, v.Sku, v.Stock, v.Price, v.ImageUrl)).ToList(),
+            p.Variants.Select(v => new ProductVariantResponseDto(v.Id, v.Size, v.ColorName, v.ColorHex, v.Sku, v.Stock, v.IsAvailable, v.Price, v.ImageUrl, v.StyleName, v.MaterialName)).ToList(),
             p.ProductCollections.Select(pc => pc.CollectionId).ToList(),
+            p.ProductStyles
+                .Where(ps => ps.Style is not null)
+                .Select(ps => ps.StyleId)
+                .Distinct()
+                .ToList(),
             p.CreatedAt,
             primarySku,
             totalStock,
@@ -786,4 +923,18 @@ public class ProductService : IProductService
         categories.Count == 0
             ? "Pijamas de mujer"
             : string.Join(", ", categories.Select(c => c.Name));
+
+    /// <summary>
+    /// Estilo fijo predominante del producto. Prioriza el catálogo canónico de estilos
+    /// (ProductStyles) y usa StyleName de las variantes como respaldo legado.
+    /// </summary>
+    private static string? GetPrimaryStyleName(Product product) =>
+        product.ProductStyles
+            .Where(ps => ps.Style is not null && ps.Style.IsActive)
+            .OrderBy(ps => ps.Style.DisplayOrder)
+            .Select(ps => ps.Style.Name)
+            .FirstOrDefault()
+        ?? product.Variants
+            .Select(v => v.StyleName)
+            .FirstOrDefault(s => !string.IsNullOrWhiteSpace(s));
 }

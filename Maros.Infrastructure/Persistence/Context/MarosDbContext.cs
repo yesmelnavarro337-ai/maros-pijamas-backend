@@ -17,8 +17,11 @@ public class MarosDbContext : DbContext
     public DbSet<ProductVariant> ProductVariants => Set<ProductVariant>();
     public DbSet<Collection> Collections => Set<Collection>();
     public DbSet<ProductCollection> ProductCollections => Set<ProductCollection>();
+    public DbSet<Style> Styles => Set<Style>();
+    public DbSet<ProductStyle> ProductStyles => Set<ProductStyle>();
     public DbSet<Season> Seasons => Set<Season>();
     public DbSet<SeasonFeaturedProduct> SeasonFeaturedProducts => Set<SeasonFeaturedProduct>();
+    public DbSet<SeasonImage> SeasonImages => Set<SeasonImage>();
     public DbSet<Customer> Customers => Set<Customer>();
     public DbSet<Quotation> Quotations => Set<Quotation>();
     public DbSet<QuotationItem> QuotationItems => Set<QuotationItem>();
