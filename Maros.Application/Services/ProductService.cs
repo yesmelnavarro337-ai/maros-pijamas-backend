@@ -128,9 +128,9 @@ public class ProductService : IProductService
 
     public async Task<ProductResponseDto> CreateAsync(ProductCreateDto request)
     {
-        await ValidateCategoriesAsync(request.CategoryIds);
+        var primaryCategoryName = await ValidateCategoriesAsync(request.CategoryIds);
         ValidateStatus(request.Status, out var status);
-        await ProcessAndValidateVariantSkusAsync(request.Variants, excludeProductId: null);
+        await ProcessAndValidateVariantSkusAsync(request.Variants, excludeProductId: null, primaryCategoryName, request.Name);
 
         var slug = SlugGenerator.Generate(request.Name);
         if (await _productRepository.SlugExistsAsync(slug))
@@ -172,9 +172,9 @@ public class ProductService : IProductService
         var product = await _productRepository.GetByIdAsync(id)
             ?? throw new AppException("Producto no encontrado.", 404);
 
-        await ValidateCategoriesAsync(request.CategoryIds);
+        var primaryCategoryName = await ValidateCategoriesAsync(request.CategoryIds);
         ValidateStatus(request.Status, out var status);
-        await ProcessAndValidateVariantSkusAsync(request.Variants, excludeProductId: id);
+        await ProcessAndValidateVariantSkusAsync(request.Variants, excludeProductId: id, primaryCategoryName, request.Name);
 
         var slug = SlugGenerator.Generate(request.Name);
         if (await _productRepository.SlugExistsAsync(slug, excludeId: id))
@@ -272,14 +272,21 @@ public class ProductService : IProductService
         return order(query);
     }
 
-    private async Task ValidateCategoriesAsync(List<Guid> categoryIds)
+    /// <summary>
+    /// Valida que las categorías existan. Devuelve el nombre de la primera,
+    /// usada como componente CAT del motor de SKUs.
+    /// </summary>
+    private async Task<string?> ValidateCategoriesAsync(List<Guid> categoryIds)
     {
+        string? firstCategoryName = null;
         foreach (var categoryId in categoryIds.Where(id => id != Guid.Empty).Distinct())
         {
             var category = await _categoryRepository.GetByIdAsync(categoryId);
             if (category is null)
                 throw new AppException("La categoría seleccionada no existe.", 400);
+            firstCategoryName ??= category.Name;
         }
+        return firstCategoryName;
     }
 
     private static void ValidateStatus(string statusInput, out ProductStatus status)
@@ -288,53 +295,71 @@ public class ProductService : IProductService
             throw new AppException("Estado de producto inválido.", 400);
     }
 
-    private async Task ProcessAndValidateVariantSkusAsync(List<ProductVariantInputDto> variants, Guid? excludeProductId)
+    /// <summary>
+    /// Validación masiva de SKUs en memoria O(N) con solo 2 consultas SQL:
+    /// una IN para los SKUs manuales y una LIKE por el prefijo del producto
+    /// para las reservas del asignador anticolisión. Reemplaza al patrón
+    /// anterior de una consulta ExistsAsync por variante (600+ round-trips).
+    /// </summary>
+    private async Task ProcessAndValidateVariantSkusAsync(
+        List<ProductVariantInputDto> variants,
+        Guid? excludeProductId,
+        string? categoryName,
+        string? productName)
     {
-        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        for (int i = 0; i < variants.Count; i++)
+        if (variants.Count == 0) return;
+
+        // 1) Normaliza los SKUs manuales y detecta duplicados dentro del payload.
+        var manualSkus = new HashSet<string>(StringComparer.Ordinal);
+        for (var i = 0; i < variants.Count; i++)
+        {
+            var sku = variants[i].Sku?.Trim();
+            if (string.IsNullOrEmpty(sku)) continue;
+
+            if (sku != variants[i].Sku)
+                variants[i] = variants[i] with { Sku = sku };
+
+            if (!manualSkus.Add(sku))
+                throw new AppException($"El SKU '{sku}' está repetido dentro del mismo producto. Por favor ingresa o genera uno distinto.", 400);
+        }
+
+        // 2) SKUs manuales ya usados por OTROS productos (una sola consulta IN).
+        if (manualSkus.Count > 0)
+        {
+            var taken = await _productRepository.GetExistingSkusAsync(manualSkus, excludeProductId);
+            var conflict = variants.FirstOrDefault(v =>
+                !string.IsNullOrWhiteSpace(v.Sku) && taken.Contains(v.Sku.Trim()));
+            if (conflict is not null)
+                throw new AppException($"El SKU '{conflict.Sku!.Trim()}' ya está en uso por otro producto. Por favor ingresa o genera uno distinto.", 409);
+        }
+
+        // 3) Generación en memoria para los que vienen vacíos: el asignador
+        //    reserva manuales y todo el espacio de claves del prefijo del
+        //    producto (base + sufijos ya existentes) con una consulta LIKE.
+        var needsGeneration = variants.Any(v => string.IsNullOrWhiteSpace(v.Sku));
+        if (!needsGeneration) return;
+
+        var skuPrefix = $"{SkuGenerator.CategoryCode(categoryName)}-{SkuGenerator.ProductCode(productName)}-";
+        var reserved = await _productRepository.GetSkusStartingWithAsync(skuPrefix, excludeProductId);
+        reserved.UnionWith(manualSkus);
+
+        var allocator = new SkuGenerator.BatchAllocator(reserved);
+        for (var i = 0; i < variants.Count; i++)
         {
             var variant = variants[i];
-            string sku = variant.Sku;
+            if (!string.IsNullOrWhiteSpace(variant.Sku)) continue;
 
-            if (string.IsNullOrWhiteSpace(sku))
+            variants[i] = variant with
             {
-                sku = await GenerateUniqueSkuAsync(variant.Size, variant.ColorName);
-                variants[i] = variant with { Sku = sku };
-            }
-            else
-            {
-                sku = sku.Trim();
-                if (sku != variant.Sku)
-                {
-                    variants[i] = variant with { Sku = sku };
-                }
-            }
-
-            if (!seen.Add(sku))
-                throw new AppException($"El SKU '{sku}' está repetido dentro del mismo producto. Por favor ingresa o genera uno distinto.", 400);
-
-            if (await _productRepository.SkuExistsAsync(sku, excludeProductId))
-            {
-                throw new AppException($"El SKU '{sku}' ya está en uso por otro producto. Por favor ingresa o genera uno distinto.", 409);
-            }
+                Sku = allocator.Allocate(new SkuGenerator.SkuInput(
+                    categoryName,
+                    productName,
+                    variant.Size,
+                    variant.ColorName,
+                    variant.StyleName,
+                    variant.MaterialName))
+            };
         }
-    }
-
-    private async Task<string> GenerateUniqueSkuAsync(string size, string colorName)
-    {
-        var sizeCode = !string.IsNullOrWhiteSpace(size) ? size.Trim().ToUpperInvariant() : "DEF";
-        var colorCode = !string.IsNullOrWhiteSpace(colorName) && colorName.Trim().Length >= 3
-            ? colorName.Trim()[..3].ToUpperInvariant()
-            : (!string.IsNullOrWhiteSpace(colorName) ? colorName.Trim().ToUpperInvariant() : "VAR");
-
-        string sku;
-        do
-        {
-            var randomSuffix = Random.Shared.Next(1000, 9999);
-            sku = $"MP-{sizeCode}-{colorCode}-{randomSuffix}";
-        } while (await _productRepository.SkuExistsAsync(sku));
-
-        return sku;
     }
 
     private static void ApplyImages(Product product, List<string> urls, List<ProductImageCreateDto>? images = null)
@@ -539,6 +564,10 @@ public class ProductService : IProductService
                 product.Variants.Remove(variant);
         }
 
+        // Las nuevas variantes se acumulan y se insertan en un solo lote
+        // (AddRange) para matrices de cientos de combinaciones.
+        var newVariants = new List<ProductVariant>();
+
         foreach (var dtoVariant in requestVariants)
         {
             bool isExistingInDb = dtoVariant.Id.HasValue && dtoVariant.Id.Value != Guid.Empty && existingDbVariantIds.Contains(dtoVariant.Id.Value);
@@ -559,48 +588,32 @@ public class ProductService : IProductService
                     existing.StyleName = dtoVariant.StyleName;
                     existing.MaterialName = dtoVariant.MaterialName;
                     existing.UpdatedAt = now;
-                }
-                else
-                {
-                    // Fallback: ID was in DTO but entity not found in collection — insert as new
-                    repository.AddVariant(new ProductVariant
-                    {
-                        ProductId = product.Id,
-                        Size = dtoVariant.Size,
-                        ColorName = dtoVariant.ColorName,
-                        ColorHex = dtoVariant.ColorHex,
-                        Sku = dtoVariant.Sku,
-                        Stock = dtoVariant.ResolveStock(),
-                        IsAvailable = dtoVariant.ResolveIsAvailable(),
-                        Price = dtoVariant.Price,
-                        ImageUrl = dtoVariant.ImageUrl,
-                        StyleName = dtoVariant.StyleName,
-                        MaterialName = dtoVariant.MaterialName,
-                        CreatedAt = now,
-                        UpdatedAt = now,
-                    });
+                    continue;
                 }
             }
-            else
+
+            // New variant (o fallback de ID no encontrado): insert como Added.
+            newVariants.Add(new ProductVariant
             {
-                // New variant: use repository.AddVariant to force EntityState.Added (INSERT)
-                repository.AddVariant(new ProductVariant
-                {
-                    ProductId = product.Id,
-                    Size = dtoVariant.Size,
-                    ColorName = dtoVariant.ColorName,
-                    ColorHex = dtoVariant.ColorHex,
-                    Sku = dtoVariant.Sku,
-                    Stock = dtoVariant.ResolveStock(),
-                    IsAvailable = dtoVariant.ResolveIsAvailable(),
-                    Price = dtoVariant.Price,
-                    ImageUrl = dtoVariant.ImageUrl,
-                    StyleName = dtoVariant.StyleName,
-                    MaterialName = dtoVariant.MaterialName,
-                    CreatedAt = now,
-                    UpdatedAt = now,
-                });
-            }
+                ProductId = product.Id,
+                Size = dtoVariant.Size,
+                ColorName = dtoVariant.ColorName,
+                ColorHex = dtoVariant.ColorHex,
+                Sku = dtoVariant.Sku,
+                Stock = dtoVariant.ResolveStock(),
+                IsAvailable = dtoVariant.ResolveIsAvailable(),
+                Price = dtoVariant.Price,
+                ImageUrl = dtoVariant.ImageUrl,
+                StyleName = dtoVariant.StyleName,
+                MaterialName = dtoVariant.MaterialName,
+                CreatedAt = now,
+                UpdatedAt = now,
+            });
+        }
+
+        if (newVariants.Count > 0)
+        {
+            repository.AddVariantsRange(newVariants);
         }
     }
 

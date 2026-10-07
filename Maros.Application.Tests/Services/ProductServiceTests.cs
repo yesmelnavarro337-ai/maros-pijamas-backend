@@ -64,7 +64,10 @@ public class ProductServiceTests
     {
         var category = new Category { Id = Guid.NewGuid() };
         _categoryRepository.Setup(r => r.GetByIdAsync(category.Id)).ReturnsAsync(category);
-        _productRepository.Setup(r => r.SkuExistsAsync("SKU-EXISTENTE", null)).ReturnsAsync(true);
+        // La validación masiva resuelve existentes con una sola consulta IN.
+        _productRepository
+            .Setup(r => r.GetExistingSkusAsync(It.IsAny<IEnumerable<string>>(), null))
+            .ReturnsAsync(new HashSet<string> { "SKU-EXISTENTE" });
 
         var request = new ProductCreateDto
         {

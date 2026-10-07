@@ -56,6 +56,43 @@ public class ProductRepository : IProductRepository
     public void AddVariant(ProductVariant variant) =>
         _context.ProductVariants.Add(variant);
 
+    public void AddVariantsRange(IEnumerable<ProductVariant> variants) =>
+        _context.ProductVariants.AddRange(variants);
+
+    /// <summary>
+    /// SKUs ya existentes en BD de entre los candidatos dados, en una sola
+    /// consulta (WHERE Sku IN …). Permite resolver colisiones en memoria O(N)
+    /// sin llamadas ExistsAsync por variante.
+    /// </summary>
+    public async Task<HashSet<string>> GetExistingSkusAsync(IEnumerable<string> skus, Guid? excludeProductId = null)
+    {
+        var candidates = skus.ToList();
+        if (candidates.Count == 0) return new HashSet<string>(StringComparer.Ordinal);
+
+        var found = await _context.ProductVariants
+            .Where(v => candidates.Contains(v.Sku)
+                        && (!excludeProductId.HasValue || v.ProductId != excludeProductId.Value))
+            .Select(v => v.Sku)
+            .ToListAsync();
+
+        return new HashSet<string>(found, StringComparer.Ordinal);
+    }
+
+    /// <summary>
+    /// Todos los SKUs con un prefijo dado (p. ej. "PIJ-ABCD-"): cubre la base y
+    /// cualquier sufijo anticolisión existente en una sola consulta LIKE.
+    /// </summary>
+    public async Task<HashSet<string>> GetSkusStartingWithAsync(string prefix, Guid? excludeProductId = null)
+    {
+        var found = await _context.ProductVariants
+            .Where(v => v.Sku.StartsWith(prefix)
+                        && (!excludeProductId.HasValue || v.ProductId != excludeProductId.Value))
+            .Select(v => v.Sku)
+            .ToListAsync();
+
+        return new HashSet<string>(found, StringComparer.Ordinal);
+    }
+
     public void AddImage(ProductImage image) =>
         _context.ProductImages.Add(image);
 

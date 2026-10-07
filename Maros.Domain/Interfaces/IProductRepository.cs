@@ -19,6 +19,9 @@ public interface IProductRepository
     void RemoveProductCategoriesRange(IEnumerable<ProductCategory> productCategories);
     void RemoveProductCollectionsRange(IEnumerable<ProductCollection> productCollections);
     void AddVariant(ProductVariant variant);
+    void AddVariantsRange(IEnumerable<ProductVariant> variants);
+    Task<HashSet<string>> GetExistingSkusAsync(IEnumerable<string> skus, Guid? excludeProductId = null);
+    Task<HashSet<string>> GetSkusStartingWithAsync(string prefix, Guid? excludeProductId = null);
     void AddImage(ProductImage image);
     Task SaveChangesAsync();
 }

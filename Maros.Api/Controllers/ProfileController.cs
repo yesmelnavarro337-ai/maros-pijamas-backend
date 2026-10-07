@@ -104,11 +104,11 @@ public class ProfileController : ControllerBase
             return BadRequest(new { message = "Debes proporcionar una imagen válida." });
         }
 
-        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
+        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp", ".gif", ".heic", ".heif" };
         var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
         if (!allowedExtensions.Contains(extension))
         {
-            return BadRequest(new { message = "Formato de archivo no permitido. Usa JPG, PNG, WEBP o GIF." });
+            return BadRequest(new { message = "Formato de archivo no permitido. Usa JPG, PNG, WEBP, GIF, HEIC o HEIF." });
         }
 
         var user = await _userRepository.GetByIdAsync(CurrentUserId);

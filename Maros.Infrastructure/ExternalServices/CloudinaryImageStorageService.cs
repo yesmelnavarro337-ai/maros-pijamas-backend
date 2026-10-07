@@ -52,6 +52,16 @@ public class CloudinaryImageStorageService : IImageStorageService
                 Folder = $"maros-pijamas/{folder}",
             };
 
+            // HEIC/HEIF (iPhone): los navegadores no renderizan el formato, así
+            // que Cloudinary lo convierte a JPEG al almacenarlo y la SecureUrl
+            // devuelta queda servible en cualquier cliente sin transformaciones.
+            var extension = Path.GetExtension(fileName);
+            if (extension.Equals(".heic", StringComparison.OrdinalIgnoreCase)
+                || extension.Equals(".heif", StringComparison.OrdinalIgnoreCase))
+            {
+                uploadParams.Format = "jpg";
+            }
+
             var result = await _cloudinary.UploadAsync(uploadParams);
 
             if (result.Error is not null)

@@ -144,3 +144,12 @@ C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Des
 C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Api\bin\Debug\net10.0\BouncyCastle.Cryptography.dll
 C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Api\bin\Debug\net10.0\MailKit.dll
 C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Api\bin\Debug\net10.0\MimeKit.dll
+C:\Users\Jhonirys\AppData\Local\Temp\opencode\maros-api-buildcheck\appsettings.Development.json
+C:\Users\Jhonirys\AppData\Local\Temp\opencode\maros-api-buildcheck\appsettings.json
+C:\Users\Jhonirys\AppData\Local\Temp\opencode\maros-api-buildcheck\Maros.Api.staticwebassets.endpoints.json
+C:\Users\Jhonirys\AppData\Local\Temp\opencode\maros-api-buildcheck\Maros.Api.exe
+C:\Users\Jhonirys\AppData\Local\Temp\opencode\maros-api-buildcheck\Maros.Api.deps.json
+C:\Users\Jhonirys\AppData\Local\Temp\opencode\maros-api-buildcheck\Maros.Api.runtimeconfig.json
+C:\Users\Jhonirys\AppData\Local\Temp\opencode\maros-api-buildcheck\Maros.Api.dll
+C:\Users\Jhonirys\AppData\Local\Temp\opencode\maros-api-buildcheck\Maros.Api.pdb
+C:\Users\Jhonirys\AppData\Local\Temp\opencode\maros-api-buildcheck\Maros.Api.xml

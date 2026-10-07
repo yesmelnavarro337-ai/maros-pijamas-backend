@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Maros.Application.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1987cce294820f300510e55ba005cf60d8ccd749")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fd590dfc21cf4c1b51f207359c8c241bf3f5d554")]
 [assembly: System.Reflection.AssemblyProductAttribute("Maros.Application.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Maros.Application.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
