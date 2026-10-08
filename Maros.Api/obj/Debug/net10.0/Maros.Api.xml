@@ -13,6 +13,9 @@
             <response code="200">Login exitoso.</response>
             <response code="401">Correo o contraseña incorrectos.</response>
         </member>
+        <member name="M:Maros.Api.Controllers.HealthController.Get">
+            <summary>Health check ligero para keep-alive / monitoreo (sin acceso a BD).</summary>
+        </member>
         <member name="M:Maros.Api.Controllers.SeasonsController.Activate(System.Guid)">
             <summary>
             Activa una temporada. Regla de negocio: solo puede haber una temporada activa

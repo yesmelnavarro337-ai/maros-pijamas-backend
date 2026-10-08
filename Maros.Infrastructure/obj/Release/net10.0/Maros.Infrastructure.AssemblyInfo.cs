@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Maros.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2da51bf1619be5f694cf084341bad69b2e2a6e11")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e08d938b4ad041fe178221f3ed37d89795dec0ad")]
 [assembly: System.Reflection.AssemblyProductAttribute("Maros.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Maros.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

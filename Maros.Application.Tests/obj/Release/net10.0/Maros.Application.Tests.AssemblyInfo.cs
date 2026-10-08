@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Maros.Application.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6975b82780310df4acca20e4966cd44dcab875b7")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e08d938b4ad041fe178221f3ed37d89795dec0ad")]
 [assembly: System.Reflection.AssemblyProductAttribute("Maros.Application.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Maros.Application.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
