@@ -22,5 +22,6 @@ public class PageHeaderConfiguration : IEntityTypeConfiguration<PageHeader>
         builder.Property(h => h.SecondaryButtonLink).HasMaxLength(300);
         builder.Property(h => h.TextColor).HasMaxLength(20);
         builder.Property(h => h.OverlayOpacity).HasDefaultValue(40);
+        builder.Property(h => h.MediaJson);
     }
 }

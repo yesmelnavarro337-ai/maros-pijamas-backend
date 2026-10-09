@@ -23,6 +23,20 @@ public class PublicProductsController : ControllerBase
         return Ok(products);
     }
 
+    [HttpGet("featured-catalog")]
+    public async Task<IActionResult> GetFeaturedCatalog()
+    {
+        var products = await _productService.GetFeaturedCatalogAsync();
+        return Ok(products);
+    }
+
+    [HttpGet("customizable")]
+    public async Task<IActionResult> GetCustomizable([FromQuery] int page = 1, [FromQuery] int pageSize = 6)
+    {
+        var result = await _productService.GetCustomizableAsync(page, pageSize);
+        return Ok(result);
+    }
+
     [HttpGet("{slug}")]
     public async Task<IActionResult> GetBySlug(string slug)
     {

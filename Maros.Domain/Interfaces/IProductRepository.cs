@@ -10,6 +10,10 @@ public interface IProductRepository
     Task<Product?> GetBySlugAsync(string slug);
     Task<List<Product>> GetPublicAsync(Guid? categoryId, Guid? collectionId, string? search);
     Task<List<Product>> GetFeaturedHomeAsync();
+    Task<List<Product>> GetFeaturedCatalogAsync();
+    Task<List<Product>> GetByIdsAsync(IEnumerable<Guid> ids);
+    Task<List<Product>> GetCustomizableAsync(int pageNumber, int pageSize);
+    Task<int> CountCustomizableAsync();
     Task<bool> SlugExistsAsync(string slug, Guid? excludeId = null);
     Task<bool> SkuExistsAsync(string sku, Guid? excludeProductId = null);
     Task AddAsync(Product product);

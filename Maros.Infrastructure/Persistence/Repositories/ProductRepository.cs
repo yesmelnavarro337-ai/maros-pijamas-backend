@@ -137,4 +137,31 @@ public class ProductRepository : IProductRepository
             .OrderByDescending(p => p.CreatedAt)
             .Take(8)
             .ToListAsync();
+
+    public Task<List<Product>> GetFeaturedCatalogAsync() =>
+        QueryWithIncludes()
+            .Where(p => p.IsFeaturedCatalog)
+            .OrderBy(p => p.CatalogOrder)
+            .ThenByDescending(p => p.CreatedAt)
+            .ToListAsync();
+
+    public Task<List<Product>> GetByIdsAsync(IEnumerable<Guid> ids)
+    {
+        var idList = ids.Distinct().ToList();
+        if (idList.Count == 0) return Task.FromResult(new List<Product>());
+        return QueryWithIncludes()
+            .Where(p => idList.Contains(p.Id) && !p.IsDeleted)
+            .ToListAsync();
+    }
+
+    public Task<List<Product>> GetCustomizableAsync(int pageNumber, int pageSize) =>
+        QueryWithIncludes()
+            .Where(p => !p.IsDeleted && p.Status == ProductStatus.Activo && p.AllowCustomization)
+            .OrderByDescending(p => p.CreatedAt)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+    public Task<int> CountCustomizableAsync() =>
+        _context.Products.CountAsync(p => !p.IsDeleted && p.Status == ProductStatus.Activo && p.AllowCustomization);
 }

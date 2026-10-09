@@ -10,5 +10,6 @@ public record PageHeaderDto(
     string? SecondaryButtonText,
     string? SecondaryButtonLink,
     string TextColor,
-    int OverlayOpacity
+    int OverlayOpacity,
+    List<PageHeaderMediaDto> Media
 );

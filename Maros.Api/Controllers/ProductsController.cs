@@ -38,6 +38,21 @@ public class ProductsController : ControllerBase
         return Ok(product);
     }
 
+    [HttpGet("featured-catalog")]
+    public async Task<IActionResult> GetFeaturedCatalog()
+    {
+        var selection = await _productService.GetFeaturedCatalogSelectionAsync();
+        return Ok(selection);
+    }
+
+    [HttpPut("featured-catalog")]
+    [Authorize(Policy = "RequireEditorOrAdmin")]
+    public async Task<IActionResult> SetFeaturedCatalog([FromBody] SetFeaturedCatalogRequest request)
+    {
+        var selection = await _productService.SetFeaturedCatalogAsync(request.ProductIds);
+        return Ok(selection);
+    }
+
     [HttpPost]
     [Authorize(Policy = "RequireEditorOrAdmin")]
     public async Task<IActionResult> Create([FromBody] ProductCreateDto request)

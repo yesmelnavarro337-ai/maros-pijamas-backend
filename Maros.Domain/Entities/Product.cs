@@ -11,6 +11,8 @@ public class Product : BaseEntity
     public decimal BasePrice { get; set; }
     public ProductStatus Status { get; set; } = ProductStatus.Borrador;
     public bool FeaturedHome { get; set; }
+    public bool IsFeaturedCatalog { get; set; }
+    public int? CatalogOrder { get; set; }
     public bool AllowCustomization { get; set; } = true;
     public string DeliveryTime { get; set; } = string.Empty;
     public bool IsDeleted { get; set; }

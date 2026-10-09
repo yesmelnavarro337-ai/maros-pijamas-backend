@@ -6,6 +6,7 @@ using Maros.Infrastructure;
 using Maros.Infrastructure.Persistence;
 using Maros.Infrastructure.Persistence.Context;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -21,6 +22,29 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.Converters.Add(new NullableGuidJsonConverter());
 });
 builder.Services.AddMemoryCache();
+
+// ─── Timeout extendido para subidas pesadas a Cloudinary (10 min) ──
+// El HttpClient por defecto aborta a los 100 s con el error
+// "HttpClient.Timeout of 100 seconds elapsing", lo que corta videos .mov de
+// iPhone y archivos de alta resolución. CloudinaryImageStorageService consume
+// este cliente con nombre para dar margen suficiente a la transcodificación.
+builder.Services.AddHttpClient("CloudinaryClient", client =>
+{
+    client.Timeout = TimeSpan.FromMinutes(10);
+});
+
+// ─── Límites de carga de archivos (100 MB) ────────────────────────
+// Videos de iPhone (.mov, 10–50 MB), MP3 instrumentales e imágenes.
+// Sin este ajuste, Kestrel limita el body a 30 MB y FormOptions puede
+// rechazar el multipart con un 400 Bad Request antes de llegar al controller.
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 104_857_600; // 100 MB
+});
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = 104_857_600; // 100 MB
+});
 
 // Reemplaza el formato ValidationProblemDetails por defecto de ASP.NET Core
 // con nuestro ApiErrorResponse, para que un fallo de [Required]/[EmailAddress]/etc.

@@ -16,4 +16,8 @@ public interface IProductService
     Task<List<ProductPublicListDto>> GetPublicListAsync(Guid? categoryId, Guid? collectionId, string? search);
     Task<ProductPublicDetailDto> GetPublicDetailBySlugAsync(string slug);
     Task<List<ProductSummaryDto>> GetFeaturedHomeAsync();
+    Task<List<ProductPublicListDto>> GetFeaturedCatalogAsync();
+    Task<List<ProductFeaturedSelectionDto>> GetFeaturedCatalogSelectionAsync();
+    Task<List<ProductFeaturedSelectionDto>> SetFeaturedCatalogAsync(List<Guid> productIds);
+    Task<CustomizableProductsPageDto> GetCustomizableAsync(int page, int pageSize);
 }

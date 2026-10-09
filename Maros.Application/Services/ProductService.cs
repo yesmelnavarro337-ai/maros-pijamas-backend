@@ -259,6 +259,90 @@ public class ProductService : IProductService
         }).ToList();
     }
 
+    public async Task<List<ProductPublicListDto>> GetFeaturedCatalogAsync()
+    {
+        var products = await _productRepository.GetFeaturedCatalogAsync();
+        return products
+            .Where(p => !p.IsDeleted && p.Status == ProductStatus.Activo)
+            .Select(ToPublicListDto)
+            .ToList();
+    }
+
+    public async Task<List<ProductFeaturedSelectionDto>> GetFeaturedCatalogSelectionAsync()
+    {
+        var products = await _productRepository.GetFeaturedCatalogAsync();
+        return products
+            .Where(p => !p.IsDeleted && p.Status == ProductStatus.Activo)
+            .OrderBy(p => p.CatalogOrder)
+            .Select(p => new ProductFeaturedSelectionDto(
+                p.Id,
+                p.Name,
+                p.Slug,
+                p.BasePrice,
+                p.Images.OrderBy(i => i.Order).Select(i => i.Url).FirstOrDefault(),
+                p.CatalogOrder))
+            .ToList();
+    }
+
+    public async Task<List<ProductFeaturedSelectionDto>> SetFeaturedCatalogAsync(List<Guid> productIds)
+    {
+        if (productIds == null)
+            throw new AppException("Debes enviar la lista de productos destacados.", 400);
+
+        var ids = productIds.Distinct().ToList();
+        if (ids.Count > 12)
+            throw new AppException("El catálogo destacado admite máximo 12 productos.", 400);
+        if (ids.Count != productIds.Count)
+            throw new AppException("Los productos del catálogo destacado no pueden repetirse.", 400);
+
+        var current = await _productRepository.GetFeaturedCatalogAsync();
+        foreach (var product in current)
+        {
+            product.IsFeaturedCatalog = false;
+            product.CatalogOrder = null;
+        }
+
+        if (ids.Count > 0)
+        {
+            var selected = await _productRepository.GetByIdsAsync(ids);
+            var found = selected.Select(s => s.Id).ToHashSet();
+            var missing = ids.Where(id => !found.Contains(id)).ToList();
+            if (missing.Count > 0)
+                throw new AppException("Uno o más productos seleccionados no existen.", 400);
+
+            var inactive = selected.Where(p => p.Status != ProductStatus.Activo).Select(p => p.Name).ToList();
+            if (inactive.Count > 0)
+                throw new AppException($"Los siguientes productos no están activos: {string.Join(", ", inactive)}.", 400);
+
+            for (var i = 0; i < ids.Count; i++)
+            {
+                var product = selected.First(p => p.Id == ids[i]);
+                product.IsFeaturedCatalog = true;
+                product.CatalogOrder = i + 1;
+            }
+        }
+
+        await _productRepository.SaveChangesAsync();
+
+        return await GetFeaturedCatalogSelectionAsync();
+    }
+
+    public async Task<CustomizableProductsPageDto> GetCustomizableAsync(int page, int pageSize)
+    {
+        var safePage = Math.Max(1, page);
+        var safePageSize = Math.Clamp(pageSize, 1, 100);
+
+        var totalCount = await _productRepository.CountCustomizableAsync();
+        var products = await _productRepository.GetCustomizableAsync(safePage, safePageSize);
+
+        return new CustomizableProductsPageDto(
+            products.Select(ToPublicListDto).ToList(),
+            safePage,
+            safePageSize,
+            totalCount,
+            safePage * safePageSize < totalCount);
+    }
+
     // ─── Helpers privados ──────────────────────────────────────────
 
     private static IQueryable<Product> ApplySorting(IQueryable<Product> query, string? sortBy, bool descending)

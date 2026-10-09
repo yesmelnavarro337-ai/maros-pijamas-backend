@@ -14,5 +14,7 @@ public class SiteSettingsConfiguration : IEntityTypeConfiguration<SiteSettings>
         builder.Property(s => s.BusinessHours).HasMaxLength(200);
         builder.Property(s => s.EmailFromAddress).HasMaxLength(256);
         builder.Property(s => s.CustomDomain).HasMaxLength(150);
+        builder.Property(s => s.InstrumentalNavidadUrl).HasMaxLength(500);
+        builder.Property(s => s.InstrumentalNosotrosUrl).HasMaxLength(500);
     }
 }

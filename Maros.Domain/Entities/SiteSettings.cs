@@ -18,6 +18,10 @@ public class SiteSettings : BaseEntity
     // Apariencia — visibilidad/orden de las secciones del home (JSON)
     public string? HomeSectionsJson { get; set; }
 
+    // Audio ambiental (instrumentales MP3)
+    public string? InstrumentalNavidadUrl { get; set; }
+    public string? InstrumentalNosotrosUrl { get; set; }
+
     // Redes sociales
     public string? Instagram { get; set; }
     public string? Facebook { get; set; }

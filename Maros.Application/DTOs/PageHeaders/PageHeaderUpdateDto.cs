@@ -11,5 +11,6 @@ public record PageHeaderUpdateDto(
     [MaxLength(80)] string? SecondaryButtonText,
     [MaxLength(300)] string? SecondaryButtonLink,
     string TextColor,
-    [Range(0, 90)] int OverlayOpacity
+    [Range(0, 90)] int OverlayOpacity,
+    List<PageHeaderMediaDto>? Media = null
 );

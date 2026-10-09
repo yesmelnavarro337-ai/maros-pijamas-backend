@@ -14,4 +14,7 @@ public class PageHeader : BaseEntity
     public string? SecondaryButtonLink { get; set; }
     public string TextColor { get; set; } = "#F9F6F0";
     public int OverlayOpacity { get; set; } = 40;
+
+    // Elementos multimedia del header (JSON): [{ url, mediaType, order }]
+    public string? MediaJson { get; set; }
 }

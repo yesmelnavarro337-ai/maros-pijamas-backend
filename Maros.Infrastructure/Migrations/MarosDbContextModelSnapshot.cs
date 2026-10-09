@@ -490,6 +490,9 @@ namespace Maros.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("MediaJson")
+                        .HasColumnType("text");
+
                     b.Property<int>("OverlayOpacity")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
@@ -554,6 +557,9 @@ namespace Maros.Infrastructure.Migrations
                     b.Property<decimal>("BasePrice")
                         .HasColumnType("decimal(12,2)");
 
+                    b.Property<int?>("CatalogOrder")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -570,6 +576,9 @@ namespace Maros.Infrastructure.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsFeaturedCatalog")
                         .HasColumnType("boolean");
 
                     b.Property<string>("Name")
@@ -1119,6 +1128,14 @@ namespace Maros.Infrastructure.Migrations
 
                     b.Property<string>("Instagram")
                         .HasColumnType("text");
+
+                    b.Property<string>("InstrumentalNavidadUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("InstrumentalNosotrosUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<string>("Keywords")
                         .IsRequired()

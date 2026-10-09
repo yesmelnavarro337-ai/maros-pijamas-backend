@@ -23,6 +23,20 @@
             a estado "Finalizada".
             </summary>
         </member>
+        <member name="M:Maros.Api.Controllers.SettingsController.GetAudio">
+            <summary>
+            Consulta las URLs públicas vigentes de los audios ambientales
+            (instrumental-navideño e instrumental-nosotros). Los MP3 se almacenan
+            en Cloudinary (carpeta maros-pijamas/audio) y la BD solo guarda la URL.
+            </summary>
+        </member>
+        <member name="M:Maros.Api.Controllers.SettingsController.UploadAudio(Microsoft.AspNetCore.Http.IFormFile,System.String)">
+            <summary>
+            Recibe un archivo MP3 y el identificador de tipo ("navidad" o "nosotros"),
+            lo sube a Cloudinary (resource type raw, carpeta maros-pijamas/audio) y
+            guarda la URL pública resultante en la configuración correspondiente.
+            </summary>
+        </member>
         <member name="M:Maros.Api.Controllers.StylesController.GetAll(System.Boolean)">
             <summary>Catálogo de estilos disponibles para maros-admin y maros-web.</summary>
         </member>
