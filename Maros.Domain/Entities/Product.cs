@@ -14,6 +14,8 @@ public class Product : BaseEntity
     public bool IsFeaturedCatalog { get; set; }
     public int? CatalogOrder { get; set; }
     public bool AllowCustomization { get; set; } = true;
+    public Guid? CustomizationModelId { get; set; }
+    public CustomizationOption? CustomizationModel { get; set; }
     public string DeliveryTime { get; set; } = string.Empty;
     public bool IsDeleted { get; set; }
 

@@ -28,6 +28,7 @@ public class MarosDbContext : DbContext
     public DbSet<QuotationItemOption> QuotationItemOptions => Set<QuotationItemOption>();
     public DbSet<QuotationReferenceImage> QuotationReferenceImages => Set<QuotationReferenceImage>();
     public DbSet<CustomizationOption> CustomizationOptions => Set<CustomizationOption>();
+    public DbSet<CustomizationOptionAssignment> CustomizationOptionAssignments => Set<CustomizationOptionAssignment>();
     public DbSet<GalleryImage> GalleryImages => Set<GalleryImage>();
     public DbSet<BlogPost> BlogPosts => Set<BlogPost>();
     public DbSet<Testimonial> Testimonials => Set<Testimonial>();

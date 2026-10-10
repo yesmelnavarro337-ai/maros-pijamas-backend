@@ -32,5 +32,10 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
             .WithOne(v => v.Product)
             .HasForeignKey(v => v.ProductId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(p => p.CustomizationModel)
+            .WithMany()
+            .HasForeignKey(p => p.CustomizationModelId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

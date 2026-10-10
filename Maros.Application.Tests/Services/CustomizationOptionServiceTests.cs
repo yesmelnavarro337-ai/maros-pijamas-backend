@@ -20,7 +20,7 @@ public class CustomizationOptionServiceTests
     [Fact]
     public async Task CreateAsync_ColorSinColorHex_LanzaAppException()
     {
-        var request = new CustomizationOptionCreateDto("Color", "Verde Oliva", null, null, null);
+        var request = new CustomizationOptionCreateDto("Color", "Verde Oliva", null, null, null, null, null, null);
 
         var ex = await Assert.ThrowsAsync<AppException>(() => _sut.CreateAsync(request));
         Assert.Contains("color", ex.Message);
@@ -29,7 +29,7 @@ public class CustomizationOptionServiceTests
     [Fact]
     public async Task CreateAsync_TallaConRecargoDePrecio_LanzaAppException()
     {
-        var request = new CustomizationOptionCreateDto("Talla", "M", null, null, 15000);
+        var request = new CustomizationOptionCreateDto("Talla", "M", null, null, null, null, 15000, null);
 
         var ex = await Assert.ThrowsAsync<AppException>(() => _sut.CreateAsync(request));
         Assert.Contains("recargo", ex.Message);
@@ -38,7 +38,7 @@ public class CustomizationOptionServiceTests
     [Fact]
     public async Task CreateAsync_TelaConRecargoDePrecio_SeCreaCorrectamente()
     {
-        var request = new CustomizationOptionCreateDto("Tela", "Satín", null, null, 20000);
+        var request = new CustomizationOptionCreateDto("Tela", "Satín", null, null, null, null, 20000, null);
 
         var result = await _sut.CreateAsync(request);
 
@@ -50,7 +50,7 @@ public class CustomizationOptionServiceTests
     [Fact]
     public async Task CreateAsync_TipoDeCatalogoInvalido_LanzaAppException()
     {
-        var request = new CustomizationOptionCreateDto("TipoInventado", "X", null, null, null);
+        var request = new CustomizationOptionCreateDto("TipoInventado", "X", null, null, null, null, null, null);
 
         await Assert.ThrowsAsync<AppException>(() => _sut.CreateAsync(request));
     }

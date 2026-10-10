@@ -33,11 +33,15 @@ public class CustomizationOptionService : ICustomizationOptionService
         {
             CatalogType = catalogType,
             Name = request.Name,
+            Description = request.Description,
+            Category = request.Category,
             ImageUrl = rules.HasImage ? request.ImageUrl : null,
             ColorHex = rules.HasColor ? request.ColorHex : null,
             PriceModifier = rules.HasPriceModifier ? request.PriceModifier : null,
             Active = true,
         };
+
+        option.AssignedOptions = await ResolveAssignmentsAsync(option.Id, request.AssignedOptionIds);
 
         await _repository.AddAsync(option);
         await _repository.SaveChangesAsync();
@@ -54,11 +58,21 @@ public class CustomizationOptionService : ICustomizationOptionService
         ValidateAgainstRules(rules, request.ImageUrl, request.ColorHex, request.PriceModifier);
 
         option.Name = request.Name;
+        option.Description = request.Description;
+        option.Category = request.Category;
         option.ImageUrl = rules.HasImage ? request.ImageUrl : null;
         option.ColorHex = rules.HasColor ? request.ColorHex : null;
         option.PriceModifier = rules.HasPriceModifier ? request.PriceModifier : null;
         option.Active = request.Active;
         option.UpdatedAt = DateTime.UtcNow;
+
+        if (request.AssignedOptionIds is not null)
+        {
+            option.AssignedOptions.Clear();
+            var assignments = await ResolveAssignmentsAsync(option.Id, request.AssignedOptionIds);
+            foreach (var assignment in assignments)
+                option.AssignedOptions.Add(assignment);
+        }
 
         await _repository.SaveChangesAsync();
         return ToDto(option);
@@ -86,6 +100,24 @@ public class CustomizationOptionService : ICustomizationOptionService
     }
 
     // ─── Helpers privados ──────────────────────────────────────────
+
+    private async Task<List<CustomizationOptionAssignment>> ResolveAssignmentsAsync(Guid modelId, List<Guid>? optionIds)
+    {
+        if (optionIds is null || optionIds.Count == 0)
+            return new List<CustomizationOptionAssignment>();
+
+        var candidates = optionIds.Where(oid => oid != modelId).Distinct().ToList();
+        if (candidates.Count == 0)
+            return new List<CustomizationOptionAssignment>();
+
+        var existing = await _repository.GetByIdsAsync(candidates);
+        var existingIds = existing.Select(o => o.Id).ToHashSet();
+
+        return candidates
+            .Where(existingIds.Contains)
+            .Select(oid => new CustomizationOptionAssignment { ModelId = modelId, OptionId = oid })
+            .ToList();
+    }
 
     private static CustomizationCatalogType ParseCatalogType(string input)
     {
@@ -117,9 +149,12 @@ public class CustomizationOptionService : ICustomizationOptionService
         o.Id,
         o.CatalogType.ToString(),
         o.Name,
+        o.Description,
+        o.Category,
         o.ImageUrl,
         o.ColorHex,
         o.PriceModifier,
-        o.Active
+        o.Active,
+        o.AssignedOptions.Select(a => a.OptionId).Distinct().ToList()
     );
 }

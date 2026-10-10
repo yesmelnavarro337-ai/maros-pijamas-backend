@@ -27,5 +27,6 @@ public record ProductPublicDetailDto(
     List<ProductImageDto>? ImageDetails = null,
     List<string>? Styles = null,
     List<Guid>? StyleIds = null,
-    List<string>? Materials = null
+    List<string>? Materials = null,
+    List<Guid>? CustomizationOptionIds = null
 );

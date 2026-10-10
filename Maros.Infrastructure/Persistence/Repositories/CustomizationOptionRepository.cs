@@ -12,8 +12,11 @@ public class CustomizationOptionRepository : ICustomizationOptionRepository
 
     public CustomizationOptionRepository(MarosDbContext context) => _context = context;
 
+    private IQueryable<CustomizationOption> QueryWithIncludes() =>
+        _context.CustomizationOptions.Include(o => o.AssignedOptions);
+
     public Task<List<CustomizationOption>> GetAllAsync() =>
-        _context.CustomizationOptions.OrderBy(o => o.CatalogType).ThenBy(o => o.Name).ToListAsync();
+        QueryWithIncludes().OrderBy(o => o.CatalogType).ThenBy(o => o.Name).ToListAsync();
 
     public Task<List<CustomizationOption>> GetByTypeAsync(CustomizationCatalogType type) =>
         _context.CustomizationOptions.Where(o => o.CatalogType == type).OrderBy(o => o.Name).ToListAsync();
@@ -22,7 +25,14 @@ public class CustomizationOptionRepository : ICustomizationOptionRepository
         _context.CustomizationOptions.Where(o => o.Active).OrderBy(o => o.CatalogType).ThenBy(o => o.Name).ToListAsync();
 
     public Task<CustomizationOption?> GetByIdAsync(Guid id) =>
-        _context.CustomizationOptions.FirstOrDefaultAsync(o => o.Id == id);
+        QueryWithIncludes().FirstOrDefaultAsync(o => o.Id == id);
+
+    public Task<List<CustomizationOption>> GetByIdsAsync(IEnumerable<Guid> ids)
+    {
+        var idList = ids.Distinct().ToList();
+        if (idList.Count == 0) return Task.FromResult(new List<CustomizationOption>());
+        return _context.CustomizationOptions.Where(o => idList.Contains(o.Id)).ToListAsync();
+    }
 
     public async Task AddAsync(CustomizationOption option) =>
         await _context.CustomizationOptions.AddAsync(option);

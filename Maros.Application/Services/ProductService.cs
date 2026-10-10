@@ -145,6 +145,7 @@ public class ProductService : IProductService
             Status = status,
             FeaturedHome = request.FeaturedHome,
             AllowCustomization = request.AllowCustomization,
+            CustomizationModelId = request.CustomizationModelId,
             DeliveryTime = request.DeliveryTime,
             SeoTitle = request.SeoTitle,
             SeoDescription = request.SeoDescription,
@@ -189,6 +190,7 @@ public class ProductService : IProductService
         product.Status = status;
         product.FeaturedHome = request.FeaturedHome;
         product.AllowCustomization = request.AllowCustomization;
+        product.CustomizationModelId = request.CustomizationModelId;
         product.DeliveryTime = request.DeliveryTime;
         product.SeoTitle = request.SeoTitle;
         product.SeoDescription = request.SeoDescription;
@@ -961,7 +963,9 @@ public class ProductService : IProductService
                 .Select(ps => ps.StyleId)
                 .Distinct()
                 .ToList(),
-            materials
+            materials,
+            p.CustomizationModel?.AssignedOptions.Select(a => a.OptionId).Distinct().ToList()
+                ?? new List<Guid>()
         );
     }
 
@@ -1012,7 +1016,10 @@ public class ProductService : IProductService
             totalStock,
             seasonName,
             imageUrl,
-            imageDetails
+            imageDetails,
+            p.CustomizationModelId,
+            p.CustomizationModel?.AssignedOptions.Select(a => a.OptionId).Distinct().ToList()
+                ?? new List<Guid>()
         );
     }
 

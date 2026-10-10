@@ -16,6 +16,15 @@
         <member name="M:Maros.Api.Controllers.HealthController.Get">
             <summary>Health check ligero para keep-alive / monitoreo (sin acceso a BD).</summary>
         </member>
+        <member name="M:Maros.Api.Controllers.CustomizationController.GetAssistantStatus">
+            <summary>Permite al frontend saber si el asistente de IA está disponible.</summary>
+        </member>
+        <member name="M:Maros.Api.Controllers.CustomizationController.Assist(Maros.Application.DTOs.Customization.CustomizationAssistantRequestDto,System.Threading.CancellationToken)">
+            <summary>
+            Recomienda una combinación (tela/color/estampado/bordado) a partir de la
+            petición en lenguaje natural del cliente. No genera imágenes.
+            </summary>
+        </member>
         <member name="M:Maros.Api.Controllers.VisitorsController.Get(System.Boolean)">
             <summary>
             Contador global de visitas persistido en PostgreSQL.

@@ -9,6 +9,7 @@ public interface ICustomizationOptionRepository
     Task<List<CustomizationOption>> GetByTypeAsync(CustomizationCatalogType type);
     Task<List<CustomizationOption>> GetActiveAsync();
     Task<CustomizationOption?> GetByIdAsync(Guid id);
+    Task<List<CustomizationOption>> GetByIdsAsync(IEnumerable<Guid> ids);
     Task AddAsync(CustomizationOption option);
     void Remove(CustomizationOption option);
     Task<int> DeleteByIdAsync(Guid id);

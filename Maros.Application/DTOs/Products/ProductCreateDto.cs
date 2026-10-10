@@ -21,6 +21,7 @@ public record ProductCreateDto
 
     public bool FeaturedHome { get; set; }
     public bool AllowCustomization { get; set; }
+    public Guid? CustomizationModelId { get; set; }
 
     [MaxLength(100)]
     public string DeliveryTime { get; set; } = string.Empty;

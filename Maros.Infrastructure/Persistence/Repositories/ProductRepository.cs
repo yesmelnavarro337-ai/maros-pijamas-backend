@@ -21,7 +21,9 @@ public class ProductRepository : IProductRepository
             .Include(p => p.Variants)
             .Include(p => p.ProductCollections)
             .Include(p => p.ProductStyles)
-                .ThenInclude(ps => ps.Style);
+                .ThenInclude(ps => ps.Style)
+            .Include(p => p.CustomizationModel)
+                .ThenInclude(m => m!.AssignedOptions);
 
     public IQueryable<Product> QueryAll() => QueryWithIncludes();
 

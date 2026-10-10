@@ -20,6 +20,13 @@ public static class DependencyInjection
         services.AddDbContext<MarosDbContext>(options =>
             options.UseNpgsql(ApplyConnectionPoolLimits(connectionString)));
 
+        // Cliente de Gemini para el asistente de personalización. Timeout corto
+        // para no bloquear el wizard si la IA tarda o no responde.
+        services.AddHttpClient("GeminiClient", client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(30);
+        });
+
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
@@ -29,6 +36,7 @@ public static class DependencyInjection
         services.AddScoped<IStyleRepository, StyleRepository>();
         services.AddScoped<ISeasonRepository, SeasonRepository>();
         services.AddScoped<ICustomizationOptionRepository, CustomizationOptionRepository>();
+        services.AddScoped<IGeminiClient, GeminiClient>();
         services.AddScoped<ICustomerRepository, CustomerRepository>();
         services.AddScoped<IQuotationRepository, QuotationRepository>();
         services.AddScoped<ISiteSettingsRepository, SiteSettingsRepository>();
