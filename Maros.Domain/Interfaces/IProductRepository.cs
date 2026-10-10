@@ -8,7 +8,7 @@ public interface IProductRepository
     IQueryable<Product> QueryAll();
     Task<Product?> GetByIdAsync(Guid id);
     Task<Product?> GetBySlugAsync(string slug);
-    Task<List<Product>> GetPublicAsync(Guid? categoryId, Guid? collectionId, string? search);
+    Task<List<Product>> GetPublicAsync(Guid? categoryId, Guid? collectionId, string? search, List<string>? categorySlugs = null, List<string>? sizes = null, List<string>? colors = null);
     Task<List<Product>> GetFeaturedHomeAsync();
     Task<List<Product>> GetFeaturedCatalogAsync();
     Task<List<Product>> GetByIdsAsync(IEnumerable<Guid> ids);

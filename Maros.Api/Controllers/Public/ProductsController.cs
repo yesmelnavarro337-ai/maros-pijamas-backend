@@ -17,9 +17,16 @@ public class PublicProductsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll([FromQuery] Guid? categoryId, [FromQuery] Guid? collectionId, [FromQuery] string? search)
+    public async Task<IActionResult> GetAll(
+        [FromQuery] Guid? categoryId,
+        [FromQuery] Guid? collectionId,
+        [FromQuery] string? search,
+        [FromQuery] string? categories,
+        [FromQuery] string? sizes,
+        [FromQuery] string? colors)
     {
-        var products = await _productService.GetPublicListAsync(categoryId, collectionId, search);
+        var products = await _productService.GetPublicListAsync(
+            categoryId, collectionId, search, categories, sizes, colors);
         return Ok(products);
     }
 

@@ -82,6 +82,12 @@ public class SiteSettings : BaseEntity
     public DateTime? LastBackupDate { get; set; }
     public string? LastBackupSize { get; set; } = "24.5 MB";
 
+    // Métrica pública: persona que pasó por el sitio.
+    // Persistida en PostgreSQL y gestionada con incremento atómico en la BD
+    // (UPDATE ... SET "TotalVisitors" = "TotalVisitors" + 1) para evitar
+    // condiciones de carrera entre visitas simultáneas. Piso base: 500.
+    public long TotalVisitors { get; set; } = 500;
+
     // Seguridad
     public bool TwoFactorEnabled { get; set; } = false;
     public int MaxLoginAttempts { get; set; } = 5;

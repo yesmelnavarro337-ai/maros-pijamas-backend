@@ -13,7 +13,7 @@ public interface IProductService
     Task<ProductResponseDto> UpdateAsync(Guid id, ProductUpdateDto request);
     Task RemoveAsync(Guid id);
 
-    Task<List<ProductPublicListDto>> GetPublicListAsync(Guid? categoryId, Guid? collectionId, string? search);
+    Task<List<ProductPublicListDto>> GetPublicListAsync(Guid? categoryId, Guid? collectionId, string? search, string? categories = null, string? sizes = null, string? colors = null);
     Task<ProductPublicDetailDto> GetPublicDetailBySlugAsync(string slug);
     Task<List<ProductSummaryDto>> GetFeaturedHomeAsync();
     Task<List<ProductPublicListDto>> GetFeaturedCatalogAsync();

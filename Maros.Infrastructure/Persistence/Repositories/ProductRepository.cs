@@ -102,15 +102,54 @@ public class ProductRepository : IProductRepository
     public Task<Product?> GetBySlugAsync(string slug) =>
         QueryWithIncludes().FirstOrDefaultAsync(p => p.Slug == slug && p.Status == ProductStatus.Activo);
 
-    public Task<List<Product>> GetPublicAsync(Guid? categoryId, Guid? collectionId, string? search)
+    public Task<List<Product>> GetPublicAsync(
+        Guid? categoryId,
+        Guid? collectionId,
+        string? search,
+        List<string>? categorySlugs = null,
+        List<string>? sizes = null,
+        List<string>? colors = null)
     {
         var query = QueryWithIncludes().Where(p => p.Status == ProductStatus.Activo);
 
         if (categoryId.HasValue)
             query = query.Where(p => p.ProductCategories.Any(pc => pc.CategoryId == categoryId.Value));
 
+        if (categorySlugs is { Count: > 0 })
+        {
+            var slugs = categorySlugs
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .Select(s => s.Trim().ToLower())
+                .Distinct()
+                .ToList();
+            if (slugs.Count > 0)
+                query = query.Where(p => p.ProductCategories.Any(pc => slugs.Contains(pc.Category.Slug.ToLower())));
+        }
+
         if (collectionId.HasValue)
             query = query.Where(p => p.ProductCollections.Any(pc => pc.CollectionId == collectionId.Value));
+
+        if (sizes is { Count: > 0 })
+        {
+            var sizeValues = sizes
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .Select(s => s.Trim().ToLower())
+                .Distinct()
+                .ToList();
+            if (sizeValues.Count > 0)
+                query = query.Where(p => p.Variants.Any(v => sizeValues.Contains(v.Size.ToLower())));
+        }
+
+        if (colors is { Count: > 0 })
+        {
+            var colorValues = colors
+                .Where(c => !string.IsNullOrWhiteSpace(c))
+                .Select(c => c.Trim().ToLower())
+                .Distinct()
+                .ToList();
+            if (colorValues.Count > 0)
+                query = query.Where(p => p.Variants.Any(v => colorValues.Contains(v.ColorName.ToLower())));
+        }
 
         if (!string.IsNullOrWhiteSpace(search))
         {

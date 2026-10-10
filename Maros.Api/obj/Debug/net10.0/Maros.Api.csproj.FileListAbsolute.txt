@@ -154,3 +154,13 @@ C:\Users\Jhonirys\AppData\Local\Temp\opencode\maros-api-buildcheck\Maros.Api.dll
 C:\Users\Jhonirys\AppData\Local\Temp\opencode\maros-api-buildcheck\Maros.Api.pdb
 C:\Users\Jhonirys\AppData\Local\Temp\opencode\maros-api-buildcheck\Maros.Api.xml
 C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\Maros.Api\bin\Debug\net10.0\Maros.Api.staticwebassets.runtime.json
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\bin\VerifyBuild\appsettings.Development.json
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\bin\VerifyBuild\appsettings.json
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\bin\VerifyBuild\Maros.Api.staticwebassets.runtime.json
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\bin\VerifyBuild\Maros.Api.staticwebassets.endpoints.json
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\bin\VerifyBuild\Maros.Api.exe
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\bin\VerifyBuild\Maros.Api.deps.json
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\bin\VerifyBuild\Maros.Api.runtimeconfig.json
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\bin\VerifyBuild\Maros.Api.dll
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\bin\VerifyBuild\Maros.Api.pdb
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\bin\VerifyBuild\Maros.Api.xml

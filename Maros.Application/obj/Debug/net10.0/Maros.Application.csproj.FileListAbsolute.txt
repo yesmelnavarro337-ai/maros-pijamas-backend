@@ -17,3 +17,6 @@ C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Des
 C:\Users\Jhonirys\AppData\Local\Temp\opencode\maros-api-buildcheck\Maros.Application.deps.json
 C:\Users\Jhonirys\AppData\Local\Temp\opencode\maros-api-buildcheck\Maros.Application.dll
 C:\Users\Jhonirys\AppData\Local\Temp\opencode\maros-api-buildcheck\Maros.Application.pdb
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\bin\VerifyBuild\Maros.Application.deps.json
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\bin\VerifyBuild\Maros.Application.dll
+C:\Users\Jhonirys\OneDrive - Universidad Nacional Abierta y a Distancia\Apps\Desktop\MAROS-PIJAMAS\backend\bin\VerifyBuild\Maros.Application.pdb

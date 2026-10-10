@@ -16,6 +16,16 @@
         <member name="M:Maros.Api.Controllers.HealthController.Get">
             <summary>Health check ligero para keep-alive / monitoreo (sin acceso a BD).</summary>
         </member>
+        <member name="M:Maros.Api.Controllers.VisitorsController.Get(System.Boolean)">
+            <summary>
+            Contador global de visitas persistido en PostgreSQL.
+            </summary>
+            <param name="peek">
+            Si es true (o ?peek=1), solo lee el valor sin incrementarlo — usado por el
+            sondeo pasivo del frontend. Si es false o está ausente, representa una
+            visita nueva y el contador se incrementa de forma atómica en +1.
+            </param>
+        </member>
         <member name="M:Maros.Api.Controllers.SeasonsController.Activate(System.Guid)">
             <summary>
             Activa una temporada. Regla de negocio: solo puede haber una temporada activa

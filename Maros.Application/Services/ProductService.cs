@@ -230,11 +230,27 @@ public class ProductService : IProductService
         await _productRepository.SaveChangesAsync();
     }
 
-    public async Task<List<ProductPublicListDto>> GetPublicListAsync(Guid? categoryId, Guid? collectionId, string? search)
+    public async Task<List<ProductPublicListDto>> GetPublicListAsync(
+        Guid? categoryId,
+        Guid? collectionId,
+        string? search,
+        string? categories = null,
+        string? sizes = null,
+        string? colors = null)
     {
-        var products = await _productRepository.GetPublicAsync(categoryId, collectionId, search);
+        var categorySlugs = ParseCsvList(categories);
+        var sizeList = ParseCsvList(sizes);
+        var colorList = ParseCsvList(colors);
+
+        var products = await _productRepository.GetPublicAsync(
+            categoryId, collectionId, search, categorySlugs, sizeList, colorList);
         return products.Select(ToPublicListDto).ToList();
     }
+
+    private static List<string> ParseCsvList(string? value) =>
+        string.IsNullOrWhiteSpace(value)
+            ? new List<string>()
+            : value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
 
     public async Task<ProductPublicDetailDto> GetPublicDetailBySlugAsync(string slug)
     {
