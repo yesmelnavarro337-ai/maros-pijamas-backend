@@ -1,5 +1,6 @@
 using System.Text;
-using System.Threading.RateLimiting;
+// [FUTURA IMPLEMENTACIÓN: IA Gemini] Reactivar cuando se reactive el rate limiter del asistente
+// using System.Threading.RateLimiting;
 using Maros.Api.Middleware;
 using Maros.Application;
 using Maros.Application.Options;
@@ -9,7 +10,7 @@ using Maros.Infrastructure.Persistence.Context;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.AspNetCore.RateLimiting;
+// using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
@@ -138,22 +139,24 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("RequireEditorOrAdmin", policy => policy.RequireRole("Administrador", "Editor"));
 });
 
-// ─── Rate limiting ─────────────────────────────────────────────────
-// El asistente de personalización llama a un proveedor externo (Gemini) con
-// cuota gratuita; se limita por IP para evitar abuso.
-builder.Services.AddRateLimiter(options =>
-{
-    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-    options.AddPolicy("CustomizationAssistant", httpContext =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            httpContext.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
-            _ => new FixedWindowRateLimiterOptions
-            {
-                PermitLimit = 12,
-                Window = TimeSpan.FromMinutes(1),
-                QueueLimit = 0,
-            }));
-});
+// ─── FUTURA IMPLEMENTACIÓN: IA Gemini ─────────────────────────────────
+// Rate limiting para el asistente de personalización (llama a Gemini con
+// cuota gratuita; se limita por IP para evitar abuso). Reactivar cuando
+// se active el asistente de IA junto con los endpoints del controlador.
+// builder.Services.AddRateLimiter(options =>
+// {
+//     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+//     options.AddPolicy("CustomizationAssistant", httpContext =>
+//         RateLimitPartition.GetFixedWindowLimiter(
+//             httpContext.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
+//             _ => new FixedWindowRateLimiterOptions
+//             {
+//                 PermitLimit = 12,
+//                 Window = TimeSpan.FromMinutes(1),
+//                 QueueLimit = 0,
+//             }));
+// });
+// ─────────────────────────────────────────────────────────────────────
 
 var app = builder.Build();
 
@@ -195,7 +198,8 @@ app.UseCors("MarosCorsPolicy");
 
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseRateLimiter();
+// [FUTURA IMPLEMENTACIÓN: IA Gemini] Reactivar junto con AddRateLimiter en la configuración
+// app.UseRateLimiter();
 
 // ─── Health check (Render / monitoreo) ───────────────────────────
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));

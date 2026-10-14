@@ -15,7 +15,8 @@ public static class DependencyInjection
         services.AddScoped<ICollectionService, CollectionService>();
         services.AddScoped<ISeasonService, SeasonService>();
         services.AddScoped<ICustomizationOptionService, CustomizationOptionService>();
-        services.AddScoped<ICustomizationAssistantService, CustomizationAssistantService>();
+        // [FUTURA IMPLEMENTACIÓN: IA Gemini] Descomentar junto con IGeminiClient y GeminiClient
+        // services.AddScoped<ICustomizationAssistantService, CustomizationAssistantService>();
         services.AddScoped<ICustomerService, CustomerService>();
         services.AddScoped<IQuotationService, QuotationService>();
         services.AddScoped<IWhatsAppService, WhatsAppService>();

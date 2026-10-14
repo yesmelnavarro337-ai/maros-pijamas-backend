@@ -6,7 +6,7 @@ using Maros.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Maros.Infrastructure.ExternalServices;
+using Maros.Infrastructure.ExternalServices; // Incluye CloudinaryImageStorageService, SmtpEmailService y (desactivado) GeminiClient
 using Npgsql;
 
 namespace Maros.Infrastructure;
@@ -20,12 +20,15 @@ public static class DependencyInjection
         services.AddDbContext<MarosDbContext>(options =>
             options.UseNpgsql(ApplyConnectionPoolLimits(connectionString)));
 
-        // Cliente de Gemini para el asistente de personalización. Timeout corto
-        // para no bloquear el wizard si la IA tarda o no responde.
-        services.AddHttpClient("GeminiClient", client =>
-        {
-            client.Timeout = TimeSpan.FromSeconds(30);
-        });
+        // ─── FUTURA IMPLEMENTACIÓN: IA Gemini ─────────────────────────────────
+        // Cliente HTTP y servicio de Gemini para el asistente de personalización.
+        // Para reactivar: descomentar estas líneas, restaurar IGeminiClient,
+        // GeminiClient, ICustomizationAssistantService y CustomizationAssistantService.
+        // services.AddHttpClient("GeminiClient", client =>
+        // {
+        //     client.Timeout = TimeSpan.FromSeconds(30);
+        // });
+        // ─────────────────────────────────────────────────────────────────────
 
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IPasswordHasher, PasswordHasher>();
@@ -36,7 +39,8 @@ public static class DependencyInjection
         services.AddScoped<IStyleRepository, StyleRepository>();
         services.AddScoped<ISeasonRepository, SeasonRepository>();
         services.AddScoped<ICustomizationOptionRepository, CustomizationOptionRepository>();
-        services.AddScoped<IGeminiClient, GeminiClient>();
+        // [FUTURA IMPLEMENTACIÓN: IA Gemini] Descomentar para activar el asistente de personalización
+        // services.AddScoped<IGeminiClient, GeminiClient>();
         services.AddScoped<ICustomerRepository, CustomerRepository>();
         services.AddScoped<IQuotationRepository, QuotationRepository>();
         services.AddScoped<ISiteSettingsRepository, SiteSettingsRepository>();

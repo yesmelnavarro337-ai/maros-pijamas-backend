@@ -1,9 +1,7 @@
-using Maros.Application.Common;
 using Maros.Application.DTOs.Customization;
 using Maros.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.RateLimiting;
 
 namespace Maros.Api.Controllers;
 
@@ -13,14 +11,24 @@ namespace Maros.Api.Controllers;
 public class CustomizationController : ControllerBase
 {
     private readonly ICustomizationOptionService _service;
-    private readonly ICustomizationAssistantService _assistant;
+
+    // ============================================================
+    // FUTURA IMPLEMENTACIÓN: ASISTENTE DE PERSONALIZACIÓN CON IA (GEMINI)
+    // El asistente está comentado. Para reactivar:
+    //   1. Descomentar las líneas marcadas con "// [IA]"
+    //   2. Reactivar los endpoints GET/POST "assistant"
+    //   3. Reactivar los registros de DI en Application y Infrastructure
+    // ============================================================
+
+    // [IA] private readonly ICustomizationAssistantService _assistant;
 
     public CustomizationController(
-        ICustomizationOptionService service,
-        ICustomizationAssistantService assistant)
+        ICustomizationOptionService service
+        // [IA] , ICustomizationAssistantService assistant
+        )
     {
         _service = service;
-        _assistant = assistant;
+        // [IA] _assistant = assistant;
     }
 
     [HttpGet("options")]
@@ -30,34 +38,39 @@ public class CustomizationController : ControllerBase
         return Ok(catalog);
     }
 
-    /// <summary>Permite al frontend saber si el asistente de IA está disponible.</summary>
-    [HttpGet("assistant")]
-    public IActionResult GetAssistantStatus()
-    {
-        return Ok(new CustomizationAssistantStatusDto(_assistant.IsEnabled, _assistant.Model));
-    }
+    // ─── Asistente IA (Gemini) — DESACTIVADO ──────────────────────────
+    // Para reactivar: descomentar los dos endpoints siguientes y restaurar
+    // los registros de IGeminiClient, ICustomizationAssistantService y
+    // el rate limiter "CustomizationAssistant" en Program.cs.
 
-    /// <summary>
-    /// Recomienda una combinación (tela/color/estampado/bordado) a partir de la
-    /// petición en lenguaje natural del cliente. No genera imágenes.
-    /// </summary>
-    [HttpPost("assistant")]
-    [EnableRateLimiting("CustomizationAssistant")]
-    public async Task<IActionResult> Assist(
-        [FromBody] CustomizationAssistantRequestDto request,
-        CancellationToken cancellationToken)
-    {
-        if (!_assistant.IsEnabled)
-        {
-            return StatusCode(
-                StatusCodes.Status503ServiceUnavailable,
-                new ApiErrorResponse(
-                    StatusCodes.Status503ServiceUnavailable,
-                    "El asistente de personalización no está disponible.",
-                    null));
-        }
+    // [IA] /// <summary>Permite al frontend saber si el asistente de IA está disponible.</summary>
+    // [IA] [HttpGet("assistant")]
+    // [IA] public IActionResult GetAssistantStatus()
+    // [IA] {
+    // [IA]     return Ok(new CustomizationAssistantStatusDto(_assistant.IsEnabled, _assistant.Model));
+    // [IA] }
 
-        var result = await _assistant.SuggestAsync(request, cancellationToken);
-        return Ok(result);
-    }
+    // [IA] /// <summary>
+    // [IA] /// Recomienda una combinación (tela/color/estampado/bordado) a partir de la
+    // [IA] /// petición en lenguaje natural del cliente. No genera imágenes.
+    // [IA] /// </summary>
+    // [IA] [HttpPost("assistant")]
+    // [IA] [EnableRateLimiting("CustomizationAssistant")]
+    // [IA] public async Task<IActionResult> Assist(
+    // [IA]     [FromBody] CustomizationAssistantRequestDto request,
+    // [IA]     CancellationToken cancellationToken)
+    // [IA] {
+    // [IA]     if (!_assistant.IsEnabled)
+    // [IA]     {
+    // [IA]         return StatusCode(
+    // [IA]             StatusCodes.Status503ServiceUnavailable,
+    // [IA]             new ApiErrorResponse(
+    // [IA]                 StatusCodes.Status503ServiceUnavailable,
+    // [IA]                 "El asistente de personalización no está disponible.",
+    // [IA]                 null));
+    // [IA]     }
+    // [IA]
+    // [IA]     var result = await _assistant.SuggestAsync(request, cancellationToken);
+    // [IA]     return Ok(result);
+    // [IA] }
 }
