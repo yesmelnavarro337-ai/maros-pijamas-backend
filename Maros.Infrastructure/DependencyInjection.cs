@@ -61,13 +61,9 @@ public static class DependencyInjection
 
     /// <summary>
     /// Limita el pool local de Npgsql por debajo del que ofrece el pooler de
-    /// Supabase (pool_size: 15 en session mode). Sin esto, Npgsql abre hasta 100
-    /// conexiones por proceso y agota los slots del pooler, provocando
-    /// "max clients reached in session mode" al arrancar.
-    ///
-    /// Se aplica sobre el connection string para que funcione con cualquier origen
-    /// de configuración (user-secrets, appsettings o variables de entorno en Render)
-    /// sin duplicar la cadena en más de un archivo.
+    /// Supabase (pool_size: 15 en session mode). Mantiene un límite conservador de
+    /// conexiones y un tiempo de inactividad corto para no agotar los slots del pooler
+    /// cuando conviven el entorno local, Render y herramientas externas.
     /// </summary>
     private static string ApplyConnectionPoolLimits(string? connectionString)
     {
@@ -80,31 +76,22 @@ public static class DependencyInjection
 
         var builder = new NpgsqlConnectionStringBuilder(connectionString);
 
-        if (builder.MaxPoolSize <= 0 || builder.MaxPoolSize > MaxPoolSize)
-        {
-            builder.MaxPoolSize = MaxPoolSize;
-        }
+        // Límite estricto de conexiones simultáneas por proceso
+        builder.MaxPoolSize = MaxPoolSize;
+        builder.MinPoolSize = MinPoolSize;
 
-        if (builder.MinPoolSize < MinPoolSize)
-        {
-            builder.MinPoolSize = MinPoolSize;
-        }
+        // Cierra conexiones inactivas rápidamente (10s) para liberar inmediatamente los slots de Supabase
+        builder.ConnectionIdleLifetime = ConnectionIdleLifetimeSeconds;
 
-        // Recicla las conexiones antes de que Supabase o un balanceador las corten,
-        // evitando fallos transitorios por conexiones zombis.
-        if (builder.ConnectionLifetime <= 0)
-        {
-            builder.ConnectionLifetime = ConnectionLifetimeSeconds;
-        }
+        // Recicla las conexiones cada 60s para evitar conexiones colgadas
+        builder.ConnectionLifetime = ConnectionLifetimeSeconds;
 
         return builder.ConnectionString;
     }
 
-    // 10 conexiones cubren la carga de esta API con holgura y dejan libre la mitad
-    // del pool del pooler para otros procesos (CLI de migraciones, diagnostics).
-    private const int MaxPoolSize = 10;
+    // 4 conexiones cubren con holgura el tráfico de la API y evitan saturar el pool de 15 de Supabase
+    private const int MaxPoolSize = 4;
     private const int MinPoolSize = 0;
-
-    // Npgsql expone ConnectionLifetime en segundos, no como TimeSpan.
-    private const int ConnectionLifetimeSeconds = 300;
+    private const int ConnectionIdleLifetimeSeconds = 10;
+    private const int ConnectionLifetimeSeconds = 60;
 }
