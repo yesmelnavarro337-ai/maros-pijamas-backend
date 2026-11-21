@@ -14,7 +14,7 @@ public class SiteSettingsRepository : ISiteSettingsRepository
     public SiteSettingsRepository(MarosDbContext context) => _context = context;
 
     public Task<SiteSettings?> GetAsync() =>
-        _context.SiteSettings.FirstOrDefaultAsync();
+        _context.SiteSettings.AsNoTracking().FirstOrDefaultAsync();
 
     public async Task AddAsync(SiteSettings settings) =>
         await _context.SiteSettings.AddAsync(settings);

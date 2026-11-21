@@ -10,16 +10,21 @@ namespace Maros.Api.Controllers.Public;
 public class PublicHomeContentController : ControllerBase
 {
     private readonly IHomeSectionContentService _service;
+    private readonly ICacheService _cacheService;
 
-    public PublicHomeContentController(IHomeSectionContentService service)
+    public PublicHomeContentController(IHomeSectionContentService service, ICacheService cacheService)
     {
         _service = service;
+        _cacheService = cacheService;
     }
 
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var sections = await _service.GetPublicAsync();
+        var sections = await _cacheService.GetOrCreateAsync(
+            "public:home-content",
+            () => _service.GetPublicAsync(),
+            TimeSpan.FromMinutes(5));
         return Ok(sections);
     }
 }

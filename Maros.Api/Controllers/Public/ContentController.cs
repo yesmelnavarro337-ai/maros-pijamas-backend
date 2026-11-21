@@ -14,41 +14,72 @@ public class ContentController : ControllerBase
     private readonly IFaqService _faqService;
     private readonly IBannerService _bannerService;
     private readonly ISiteSettingsService _settingsService;
+    private readonly ICacheService _cacheService;
 
     public ContentController(
         IBlogService blogService,
         ITestimonialService testimonialService,
         IFaqService faqService,
         IBannerService bannerService,
-        ISiteSettingsService settingsService)
+        ISiteSettingsService settingsService,
+        ICacheService cacheService)
     {
         _blogService = blogService;
         _testimonialService = testimonialService;
         _faqService = faqService;
         _bannerService = bannerService;
         _settingsService = settingsService;
+        _cacheService = cacheService;
     }
 
     [HttpGet("blog")]
-    public async Task<IActionResult> GetBlog() => Ok(await _blogService.GetPublicAsync());
+    public async Task<IActionResult> GetBlog()
+    {
+        var blog = await _cacheService.GetOrCreateAsync(
+            "public:blog",
+            () => _blogService.GetPublicAsync(),
+            TimeSpan.FromMinutes(5));
+        return Ok(blog);
+    }
 
     [HttpGet("testimonials")]
-    public async Task<IActionResult> GetTestimonials() => Ok(await _testimonialService.GetPublicAsync());
+    public async Task<IActionResult> GetTestimonials()
+    {
+        var testimonials = await _cacheService.GetOrCreateAsync(
+            "public:testimonials",
+            () => _testimonialService.GetPublicAsync(),
+            TimeSpan.FromMinutes(5));
+        return Ok(testimonials);
+    }
 
     [HttpGet("faq")]
-    public async Task<IActionResult> GetFaq() => Ok(await _faqService.GetPublicAsync());
+    public async Task<IActionResult> GetFaq()
+    {
+        var faq = await _cacheService.GetOrCreateAsync(
+            "public:faq",
+            () => _faqService.GetPublicAsync(),
+            TimeSpan.FromMinutes(5));
+        return Ok(faq);
+    }
 
     [HttpGet("banners")]
     public async Task<IActionResult> GetBanners([FromQuery] string? position)
     {
-        var banners = await _bannerService.GetPublicAsync(position);
+        var key = $"public:banners:{position ?? "all"}";
+        var banners = await _cacheService.GetOrCreateAsync(
+            key,
+            () => _bannerService.GetPublicAsync(position),
+            TimeSpan.FromMinutes(5));
         return Ok(banners);
     }
 
     [HttpGet("settings")]
     public async Task<IActionResult> GetSettings()
     {
-        var settings = await _settingsService.GetPublicAsync();
+        var settings = await _cacheService.GetOrCreateAsync(
+            "public:settings",
+            () => _settingsService.GetPublicAsync(),
+            TimeSpan.FromMinutes(5));
         return Ok(settings);
     }
 }

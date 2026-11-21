@@ -12,9 +12,13 @@ public class ProductRepository : IProductRepository
 
     public ProductRepository(MarosDbContext context) => _context = context;
 
-    private IQueryable<Product> QueryWithIncludes() =>
-        _context.Products
-            .AsSplitQuery()
+    private IQueryable<Product> QueryWithIncludes(bool asNoTracking = false)
+    {
+        var query = _context.Products.AsSplitQuery();
+        if (asNoTracking)
+            query = query.AsNoTracking();
+
+        return query
             .Include(p => p.ProductCategories)
                 .ThenInclude(pc => pc.Category)
             .Include(p => p.Images)
@@ -24,6 +28,7 @@ public class ProductRepository : IProductRepository
                 .ThenInclude(ps => ps.Style)
             .Include(p => p.CustomizationModel)
                 .ThenInclude(m => m!.AssignedOptions);
+    }
 
     public IQueryable<Product> QueryAll() => QueryWithIncludes();
 
@@ -102,7 +107,7 @@ public class ProductRepository : IProductRepository
         _context.SaveChangesAsync();
 
     public Task<Product?> GetBySlugAsync(string slug) =>
-        QueryWithIncludes().FirstOrDefaultAsync(p => p.Slug == slug && p.Status == ProductStatus.Activo);
+        QueryWithIncludes(asNoTracking: true).FirstOrDefaultAsync(p => p.Slug == slug && p.Status == ProductStatus.Activo);
 
     public Task<List<Product>> GetPublicAsync(
         Guid? categoryId,
@@ -112,7 +117,7 @@ public class ProductRepository : IProductRepository
         List<string>? sizes = null,
         List<string>? colors = null)
     {
-        var query = QueryWithIncludes().Where(p => p.Status == ProductStatus.Activo);
+        var query = QueryWithIncludes(asNoTracking: true).Where(p => p.Status == ProductStatus.Activo);
 
         if (categoryId.HasValue)
             query = query.Where(p => p.ProductCategories.Any(pc => pc.CategoryId == categoryId.Value));
@@ -173,14 +178,21 @@ public class ProductRepository : IProductRepository
     }
 
     public Task<List<Product>> GetFeaturedHomeAsync() =>
-        QueryWithIncludes()
+        _context.Products
+            .AsNoTracking()
+            .AsSplitQuery()
+            .Include(p => p.ProductCategories)
+                .ThenInclude(pc => pc.Category)
+            .Include(p => p.Images)
+            .Include(p => p.ProductStyles)
+                .ThenInclude(ps => ps.Style)
             .Where(p => p.Status == ProductStatus.Activo && p.FeaturedHome)
             .OrderByDescending(p => p.CreatedAt)
             .Take(8)
             .ToListAsync();
 
     public Task<List<Product>> GetFeaturedCatalogAsync() =>
-        QueryWithIncludes()
+        QueryWithIncludes(asNoTracking: true)
             .Where(p => p.IsFeaturedCatalog)
             .OrderBy(p => p.CatalogOrder)
             .ThenByDescending(p => p.CreatedAt)
@@ -190,13 +202,13 @@ public class ProductRepository : IProductRepository
     {
         var idList = ids.Distinct().ToList();
         if (idList.Count == 0) return Task.FromResult(new List<Product>());
-        return QueryWithIncludes()
+        return QueryWithIncludes(asNoTracking: true)
             .Where(p => idList.Contains(p.Id) && !p.IsDeleted)
             .ToListAsync();
     }
 
     public Task<List<Product>> GetCustomizableAsync(int pageNumber, int pageSize) =>
-        QueryWithIncludes()
+        QueryWithIncludes(asNoTracking: true)
             .Where(p => !p.IsDeleted && p.Status == ProductStatus.Activo && p.AllowCustomization)
             .OrderByDescending(p => p.CreatedAt)
             .Skip((pageNumber - 1) * pageSize)

@@ -15,19 +15,30 @@ public class ProductService : IProductService
     private readonly ISeasonRepository _seasonRepository;
     private readonly IStyleRepository _styleRepository;
     private readonly IPaginationService _paginationService;
+    private readonly ICacheService? _cacheService;
 
     public ProductService(
         IProductRepository productRepository,
         ICategoryRepository categoryRepository,
         ISeasonRepository seasonRepository,
         IStyleRepository styleRepository,
-        IPaginationService paginationService)
+        IPaginationService paginationService,
+        ICacheService? cacheService = null)
     {
         _productRepository = productRepository;
         _categoryRepository = categoryRepository;
         _seasonRepository = seasonRepository;
         _styleRepository = styleRepository;
         _paginationService = paginationService;
+        _cacheService = cacheService;
+    }
+
+    private void InvalidateProductCache()
+    {
+        _cacheService?.RemoveByPrefix("public:products");
+        _cacheService?.RemoveByPrefix("public:product:");
+        _cacheService?.Remove("public:featured-catalog");
+        _cacheService?.Remove("public:home");
     }
 
     public async Task<PagedResult<ProductResponseDto>> GetAllAsync(ProductQueryParams query)
@@ -162,6 +173,7 @@ public class ProductService : IProductService
 
         await _productRepository.AddAsync(product);
         await _productRepository.SaveChangesAsync();
+        InvalidateProductCache();
 
         var created = await _productRepository.GetByIdAsync(product.Id);
         var seasons = await _seasonRepository.GetAllAsync();
@@ -211,6 +223,7 @@ public class ProductService : IProductService
         try
         {
             await _productRepository.SaveChangesAsync();
+            InvalidateProductCache();
         }
         catch (Exception ex) when (ex.GetType().Name.Contains("Concurrency"))
         {
@@ -230,6 +243,7 @@ public class ProductService : IProductService
         product.IsDeleted = true;
         product.UpdatedAt = DateTime.UtcNow;
         await _productRepository.SaveChangesAsync();
+        InvalidateProductCache();
     }
 
     public async Task<List<ProductPublicListDto>> GetPublicListAsync(
@@ -341,6 +355,7 @@ public class ProductService : IProductService
         }
 
         await _productRepository.SaveChangesAsync();
+        InvalidateProductCache();
 
         return await GetFeaturedCatalogSelectionAsync();
     }

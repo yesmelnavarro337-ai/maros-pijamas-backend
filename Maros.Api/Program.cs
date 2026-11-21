@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using System.Text;
 // [FUTURA IMPLEMENTACIÓN: IA Gemini] Reactivar cuando se reactive el rate limiter del asistente
 // using System.Threading.RateLimiting;
@@ -10,6 +11,7 @@ using Maros.Infrastructure.Persistence.Context;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.ResponseCompression;
 // using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -25,6 +27,27 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.Converters.Add(new NullableGuidJsonConverter());
 });
 builder.Services.AddMemoryCache();
+
+// ─── Response Compression (Brotli y Gzip para Render) ─────────────
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Add<BrotliCompressionProvider>();
+    options.Providers.Add<GzipCompressionProvider>();
+    options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[]
+    {
+        "application/json",
+        "application/problem+json"
+    });
+});
+builder.Services.Configure<BrotliCompressionProviderOptions>(options =>
+{
+    options.Level = CompressionLevel.Fastest;
+});
+builder.Services.Configure<GzipCompressionProviderOptions>(options =>
+{
+    options.Level = CompressionLevel.Fastest;
+});
 
 // ─── Timeout extendido para subidas pesadas a Cloudinary (10 min) ──
 // El HttpClient por defecto aborta a los 100 s con el error
@@ -170,6 +193,7 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
 });
 
 // ─── Middleware pipeline ──────────────────────────────────────────
+app.UseResponseCompression();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())
@@ -191,6 +215,8 @@ using (var scope = app.Services.CreateScope())
     await SiteSettingsSeed.SeedDefaultAsync(db);
     await PageHeaderSeed.SeedDefaultAsync(db);
     await HomeSectionContentSeed.SeedDefaultAsync(db);
+    await TestimonialsSeed.SeedDefaultAsync(db);
+    await ProductStylesSeed.SeedNewStylesAsync(db);
 }
 
 app.UseHttpsRedirection();

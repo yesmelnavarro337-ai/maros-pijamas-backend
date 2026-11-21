@@ -12,7 +12,7 @@ public class CategoryRepository : ICategoryRepository
     public CategoryRepository(MarosDbContext context) => _context = context;
 
     public Task<List<Category>> GetAllAsync() =>
-        _context.Categories.OrderBy(c => c.Name).ToListAsync();
+        _context.Categories.AsNoTracking().OrderBy(c => c.Name).ToListAsync();
 
     public async Task<List<(Category Category, int ProductsCount)>> GetAllWithCountAsync()
     {

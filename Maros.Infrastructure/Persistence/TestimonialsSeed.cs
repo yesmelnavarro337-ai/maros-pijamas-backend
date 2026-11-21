@@ -9,8 +9,8 @@ public static class TestimonialsSeed
 {
     public static async Task SeedDefaultAsync(MarosDbContext context)
     {
-        // Si ya existen suficientes testimonios cargados, no duplicamos
-        if (await context.Testimonials.CountAsync() >= 10) return;
+        // Si ya existen testimonios cargados, no realizamos consultas o escrituras redundantes
+        if (await context.Testimonials.AnyAsync()) return;
 
         var sampleTestimonials = new List<Testimonial>
         {

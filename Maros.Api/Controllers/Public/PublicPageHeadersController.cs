@@ -10,16 +10,21 @@ namespace Maros.Api.Controllers;
 public class PublicPageHeadersController : ControllerBase
 {
     private readonly IPageHeaderService _pageHeaderService;
+    private readonly ICacheService _cacheService;
 
-    public PublicPageHeadersController(IPageHeaderService pageHeaderService)
+    public PublicPageHeadersController(IPageHeaderService pageHeaderService, ICacheService cacheService)
     {
         _pageHeaderService = pageHeaderService;
+        _cacheService = cacheService;
     }
 
     [HttpGet]
     public async Task<IActionResult> Get()
     {
-        var headers = await _pageHeaderService.GetPublicAsync();
+        var headers = await _cacheService.GetOrCreateAsync(
+            "public:page-headers",
+            () => _pageHeaderService.GetPublicAsync(),
+            TimeSpan.FromMinutes(5));
         return Ok(headers);
     }
 }

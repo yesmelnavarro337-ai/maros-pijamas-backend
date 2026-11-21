@@ -9,10 +9,18 @@ namespace Maros.Application.Services;
 public class SiteSettingsService : ISiteSettingsService
 {
     private readonly ISiteSettingsRepository _repository;
+    private readonly ICacheService? _cacheService;
 
-    public SiteSettingsService(ISiteSettingsRepository repository)
+    public SiteSettingsService(ISiteSettingsRepository repository, ICacheService? cacheService = null)
     {
         _repository = repository;
+        _cacheService = cacheService;
+    }
+
+    private void InvalidateSettingsCache()
+    {
+        _cacheService?.Remove("public:settings");
+        _cacheService?.Remove("public:home");
     }
 
     public async Task<SiteSettingsResponseDto> GetAsync()
@@ -108,6 +116,7 @@ public class SiteSettingsService : ISiteSettingsService
         settings.UpdatedAt = DateTime.UtcNow;
 
         await _repository.SaveChangesAsync();
+        InvalidateSettingsCache();
         return ToDto(settings);
     }
 

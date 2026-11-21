@@ -49,6 +49,7 @@ public class TestimonialRepository : ITestimonialRepository
 
     public Task<List<Testimonial>> GetPublicAsync() =>
         _context.Testimonials
+            .AsNoTracking()
             .Where(t => t.Status == TestimonialStatus.Publicado)
             .OrderByDescending(t => t.PublishDate)
             .ThenByDescending(t => t.CreatedAt)

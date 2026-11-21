@@ -27,11 +27,14 @@ public static class SeedData
 
         if (existingUser is not null)
         {
-            // Resetear contraseña y asegurar rol Administrador
-            existingUser.PasswordHash = hasher.HashPassword(existingUser, password);
-            existingUser.Role = UserRole.Administrador;
-            existingUser.Status = UserStatus.Activo;
-            Console.WriteLine($"[SeedData] Contraseña del usuario administrador '{email}' restablecida exitosamente.");
+            // Solo actualizar si no tiene el rol de Administrador o no está Activo, evitando escrituras innecesarias en cada inicio
+            if (existingUser.Role != UserRole.Administrador || existingUser.Status != UserStatus.Activo)
+            {
+                existingUser.Role = UserRole.Administrador;
+                existingUser.Status = UserStatus.Activo;
+                await context.SaveChangesAsync();
+                Console.WriteLine($"[SeedData] Rol y estado del usuario administrador '{email}' asegurados.");
+            }
         }
         else
         {
@@ -45,9 +48,8 @@ public static class SeedData
             };
             admin.PasswordHash = hasher.HashPassword(admin, password);
             context.Users.Add(admin);
+            await context.SaveChangesAsync();
             Console.WriteLine($"[SeedData] Usuario administrador '{email}' creado exitosamente.");
         }
-
-        await context.SaveChangesAsync();
     }
 }

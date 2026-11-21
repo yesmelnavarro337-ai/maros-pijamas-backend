@@ -9,10 +9,19 @@ namespace Maros.Application.Services;
 public class CategoryService : ICategoryService
 {
     private readonly ICategoryRepository _categoryRepository;
+    private readonly ICacheService? _cacheService;
 
-    public CategoryService(ICategoryRepository categoryRepository)
+    public CategoryService(ICategoryRepository categoryRepository, ICacheService? cacheService = null)
     {
         _categoryRepository = categoryRepository;
+        _cacheService = cacheService;
+    }
+
+    private void InvalidateCategoryCache()
+    {
+        _cacheService?.Remove("public:categories");
+        _cacheService?.RemoveByPrefix("public:products");
+        _cacheService?.Remove("public:home");
     }
 
     public async Task<List<CategoryResponseDto>> GetAllAsync()
@@ -47,6 +56,7 @@ public class CategoryService : ICategoryService
         };
         await _categoryRepository.AddAsync(category);
         await _categoryRepository.SaveChangesAsync();
+        InvalidateCategoryCache();
 
         return ToDto(category, 0);
     }
@@ -83,6 +93,7 @@ public class CategoryService : ICategoryService
             category.SurchargeReason = request.SurchargeReason;
 
         await _categoryRepository.SaveChangesAsync();
+        InvalidateCategoryCache();
 
         var count = await _categoryRepository.HasProductsAsync(id)
             ? (await _categoryRepository.GetByIdWithCountAsync(id))?.ProductsCount ?? 0
@@ -102,6 +113,7 @@ public class CategoryService : ICategoryService
         await _categoryRepository.ClearProductReferencesAsync(id);
         _categoryRepository.Remove(category);
         await _categoryRepository.SaveChangesAsync();
+        InvalidateCategoryCache();
     }
 
     public async Task<List<CategoryPublicDto>> GetPublicAsync()

@@ -56,6 +56,7 @@ public static class DependencyInjection
         services.AddScoped<IPaginationService, PaginationService>();
         services.AddScoped<IContactMessageRepository, ContactMessageRepository>();
         services.AddScoped<IEmailService, SmtpEmailService>();
+        services.AddSingleton<ICacheService, MemoryCacheService>();
         return services;
     }
 

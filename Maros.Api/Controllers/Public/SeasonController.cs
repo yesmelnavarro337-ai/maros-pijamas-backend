@@ -10,16 +10,21 @@ namespace Maros.Api.Controllers;
 public class SeasonController : ControllerBase
 {
     private readonly ISeasonService _seasonService;
+    private readonly ICacheService _cacheService;
 
-    public SeasonController(ISeasonService seasonService)
+    public SeasonController(ISeasonService seasonService, ICacheService cacheService)
     {
         _seasonService = seasonService;
+        _cacheService = cacheService;
     }
 
     [HttpGet("active")]
     public async Task<IActionResult> GetActive()
     {
-        var season = await _seasonService.GetActivePublicAsync();
+        var season = await _cacheService.GetOrCreateAsync(
+            "public:season:active",
+            () => _seasonService.GetActivePublicAsync(),
+            TimeSpan.FromMinutes(5));
 
         if (season is null)
             return NotFound(new { message = "No hay ninguna temporada activa actualmente." });

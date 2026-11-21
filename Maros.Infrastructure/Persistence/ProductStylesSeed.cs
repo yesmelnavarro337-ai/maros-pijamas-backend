@@ -38,6 +38,16 @@ public static class ProductStylesSeed
     public static async Task SeedNewStylesAsync(MarosDbContext db)
     {
         var definitions = new[] { ShortTirasMujer, ShortCamisetaInfantil, PantalonCamisetaInfantil };
+
+        // Verificación rápida de idempotencia: si los 3 estilos existen y los productos activos ya tienen estilos asignados, omitir
+        var existingCount = await db.Styles.CountAsync(s => s.Id == ShortTirasMujer.Id || s.Id == ShortCamisetaInfantil.Id || s.Id == PantalonCamisetaInfantil.Id);
+        if (existingCount == 3)
+        {
+            bool hasUnassignedProducts = await db.Products
+                .AnyAsync(p => !p.IsDeleted && p.Status == ProductStatus.Activo && !p.ProductStyles.Any(ps => ps.StyleId == ShortTirasMujer.Id || ps.StyleId == ShortCamisetaInfantil.Id));
+            if (!hasUnassignedProducts) return;
+        }
+
         var resolvedStyles = new List<Style>();
 
         foreach (var def in definitions)

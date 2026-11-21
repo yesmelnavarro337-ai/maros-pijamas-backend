@@ -10,10 +10,18 @@ namespace Maros.Application.Services;
 public class TestimonialService : ITestimonialService
 {
     private readonly ITestimonialRepository _repository;
+    private readonly ICacheService? _cacheService;
 
-    public TestimonialService(ITestimonialRepository repository)
+    public TestimonialService(ITestimonialRepository repository, ICacheService? cacheService = null)
     {
         _repository = repository;
+        _cacheService = cacheService;
+    }
+
+    private void InvalidateTestimonialCache()
+    {
+        _cacheService?.Remove("public:testimonials");
+        _cacheService?.Remove("public:home");
     }
 
     public async Task<PagedResult<TestimonialResponseDto>> GetAllAsync(TestimonialQueryParams query)
@@ -57,6 +65,7 @@ public class TestimonialService : ITestimonialService
 
         await _repository.AddAsync(testimonial);
         await _repository.SaveChangesAsync();
+        InvalidateTestimonialCache();
 
         return ToDto(testimonial);
     }
@@ -83,6 +92,7 @@ public class TestimonialService : ITestimonialService
         testimonial.UpdatedAt = DateTime.UtcNow;
 
         await _repository.SaveChangesAsync();
+        InvalidateTestimonialCache();
         return ToDto(testimonial);
     }
 
@@ -98,6 +108,7 @@ public class TestimonialService : ITestimonialService
         testimonial.UpdatedAt = DateTime.UtcNow;
 
         await _repository.SaveChangesAsync();
+        InvalidateTestimonialCache();
         return ToDto(testimonial);
     }
 
@@ -106,6 +117,7 @@ public class TestimonialService : ITestimonialService
         var affected = await _repository.DeleteByIdAsync(id);
         if (affected == 0)
             throw new AppException("Testimonio no encontrado.", 404);
+        InvalidateTestimonialCache();
     }
 
     public async Task<List<TestimonialPublicDto>> GetPublicAsync()

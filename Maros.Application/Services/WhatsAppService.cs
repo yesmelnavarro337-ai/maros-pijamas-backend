@@ -50,11 +50,20 @@ public class WhatsAppService : IWhatsAppService
         sb.AppendLine("Hola Maro's Pijamas, acabo de enviar una solicitud de cotización en la web.");
         sb.AppendLine($"Cliente: {quotation.Customer!.Name}");
         sb.AppendLine($"Teléfono: {quotation.Customer.Phone}");
+        if (!string.IsNullOrWhiteSpace(quotation.Customer.City))
+        {
+            sb.AppendLine($"Ciudad: {quotation.Customer.City}");
+        }
         sb.Append("Detalle:");
+
+        decimal totalEstimated = 0m;
 
         foreach (var item in quotation.Items)
         {
             var productName = item.Product?.Name ?? "Producto personalizado";
+            var calc = QuotationPriceCalculator.CalculateItemPrice(item);
+            totalEstimated += calc.LineTotal;
+
             var details = item.SelectedOptions
                 .Select(o => $"{o.CustomizationOption.CatalogType}: {o.CustomizationOption.Name}")
                 .ToList();
@@ -69,11 +78,19 @@ public class WhatsAppService : IWhatsAppService
             sb.Append($"- {productName} x{item.Quantity}");
             if (details.Count > 0)
                 sb.Append($" ({string.Join(" · ", details)})");
+
+            sb.AppendLine();
+            sb.Append($"  Valor unitario: ${calc.UnitPrice:N0} COP | Cantidad: {item.Quantity} unidades | Subtotal: ${calc.LineTotal:N0} COP{calc.BreakdownNote}");
+        }
+
+        if (totalEstimated > 0)
+        {
+            sb.AppendLine();
+            sb.AppendLine($"VALOR ESTIMADO TOTAL: ${totalEstimated:N0} COP");
         }
 
         if (!string.IsNullOrWhiteSpace(quotation.Notes))
         {
-            sb.AppendLine();
             sb.AppendLine();
             sb.Append($"Notas: {quotation.Notes}");
         }
