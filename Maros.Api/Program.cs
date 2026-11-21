@@ -116,9 +116,43 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.Configure<InvitationOptions>(builder.Configuration.GetSection(InvitationOptions.SectionName));
 
 // ─── CORS ──────────────────────────────────────────────────────────
-var allowedOrigins = builder.Configuration
+var baseOrigins = new[]
+{
+    "https://maros-pijamas.vercel.app",
+    "https://maros-admin2.vercel.app",
+    "http://localhost:3000",
+    "http://localhost:3001"
+};
+
+var configuredOrigins = new List<string>();
+
+// 1. Intentar leer como array (appsettings.json o variables de entorno Cors__AllowedOrigins__0)
+var arrayFromConfig = builder.Configuration
     .GetSection("Cors:AllowedOrigins")
-    .Get<string[]>() ?? [];
+    .Get<string[]>();
+
+if (arrayFromConfig != null && arrayFromConfig.Length > 0)
+{
+    configuredOrigins.AddRange(arrayFromConfig);
+}
+
+// 2. Intentar leer como cadena delimitada por comas (desde Cors:AllowedOrigins o CORS_ALLOWED_ORIGINS)
+var stringFromConfig = builder.Configuration["Cors:AllowedOrigins"]
+    ?? builder.Configuration["CORS_ALLOWED_ORIGINS"];
+
+if (!string.IsNullOrWhiteSpace(stringFromConfig))
+{
+    var split = stringFromConfig.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+    configuredOrigins.AddRange(split);
+}
+
+var allowedOrigins = baseOrigins
+    .Concat(configuredOrigins)
+    .SelectMany(o => o.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+    .Where(o => !string.IsNullOrWhiteSpace(o))
+    .Select(o => o.Trim().TrimEnd('/'))
+    .Distinct(StringComparer.OrdinalIgnoreCase)
+    .ToArray();
 
 builder.Services.AddCors(options =>
 {
@@ -192,18 +226,25 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
     KnownProxies = { }
 });
 
-// ─── Middleware pipeline ──────────────────────────────────────────
-app.UseResponseCompression();
-app.UseMiddleware<ExceptionHandlingMiddleware>();
+// ─── CORS ──────────────────────────────────────────────────────────
+// Inmediatamente después de ForwardedHeaders y antes de ResponseCompression,
+// ExceptionHandlingMiddleware, Authentication y MapControllers para asegurar
+// que preflights OPTIONS y respuestas de error siempre lleven las cabeceras CORS.
+app.UseCors("MarosCorsPolicy");
 
+// ─── Middleware pipeline ──────────────────────────────────────────
 if (app.Environment.IsDevelopment())
 {
+    app.UseHttpsRedirection();
     app.MapOpenApi();
     app.MapScalarApiReference(options =>
     {
         options.Title = "Maro's Pijamas API";
     });
 }
+
+app.UseResponseCompression();
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 // Sembrar/actualizar usuario admin inicial y configuraciones predeterminadas.
 // Se ejecuta en todos los entornos para garantizar que el admin exista en producción.
@@ -218,9 +259,6 @@ using (var scope = app.Services.CreateScope())
     await TestimonialsSeed.SeedDefaultAsync(db);
     await ProductStylesSeed.SeedNewStylesAsync(db);
 }
-
-app.UseHttpsRedirection();
-app.UseCors("MarosCorsPolicy");
 
 app.UseAuthentication();
 app.UseAuthorization();

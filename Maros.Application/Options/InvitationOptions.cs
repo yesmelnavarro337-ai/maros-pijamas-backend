@@ -7,7 +7,7 @@ public class InvitationOptions
     /// <summary>
     /// URL pública raíz del panel administrativo.
     /// </summary>
-    public string FrontendUrl { get; set; } = "https://maros-admin.vercel.app";
+    public string FrontendUrl { get; set; } = "https://maros-admin2.vercel.app";
 
     /// <summary>
     /// URL completa legacy del enlace de aceptación. Se conserva como fallback

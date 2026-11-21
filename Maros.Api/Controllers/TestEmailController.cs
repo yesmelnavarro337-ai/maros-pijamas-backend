@@ -20,7 +20,7 @@ namespace Maros.Api.Controllers
         [HttpPost("send-invitation-test")]
         public async Task<IActionResult> SendInvitationTest([FromBody] SendInvitationTestDto dto)
         {
-            var testUrl = $"https://maros-admin.vercel.app/accept-invitation?token=test-123&email={Uri.EscapeDataString(dto.To)}";
+            var testUrl = $"https://maros-admin2.vercel.app/accept-invitation?token=test-123&email={Uri.EscapeDataString(dto.To)}";
 
             await _emailService.SendInvitationAsync(dto.To, dto.Name, testUrl);
 

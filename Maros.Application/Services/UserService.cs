@@ -123,7 +123,7 @@ public class UserService : IUserService
 
         var acceptUrl = options.AcceptUrl?.Trim();
         if (string.IsNullOrWhiteSpace(acceptUrl))
-            return "https://maros-admin.vercel.app";
+            return "https://maros-admin2.vercel.app";
 
         const string legacyPath = "/accept-invite";
         const string currentPath = "/accept-invitation";
