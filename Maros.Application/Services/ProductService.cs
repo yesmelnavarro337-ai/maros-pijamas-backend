@@ -1060,16 +1060,19 @@ public class ProductService : IProductService
             : string.Join(", ", categories.Select(c => c.Name));
 
     /// <summary>
-    /// Estilo fijo predominante del producto. Prioriza el catálogo canónico de estilos
-    /// (ProductStyles) y usa StyleName de las variantes como respaldo legado.
+    /// Estilo fijo predominante del producto. Prioriza la línea de Adultos sobre la Infantil
+    /// en el catálogo canónico de estilos (ProductStyles) y usa StyleName de las variantes como respaldo.
     /// </summary>
     private static string? GetPrimaryStyleName(Product product) =>
         product.ProductStyles
             .Where(ps => ps.Style is not null && ps.Style.IsActive)
-            .OrderBy(ps => ps.Style.DisplayOrder)
+            .OrderBy(ps => ps.Style.Line == StyleLine.Adulto ? 0 : 1)
+            .ThenBy(ps => ps.Style.DisplayOrder)
             .Select(ps => ps.Style.Name)
             .FirstOrDefault()
         ?? product.Variants
+            .Where(v => !string.IsNullOrWhiteSpace(v.StyleName))
+            .OrderBy(v => v.StyleName!.Contains("Infantil") || v.StyleName.Contains("Niño") || v.StyleName.Contains("Bebé") ? 1 : 0)
             .Select(v => v.StyleName)
-            .FirstOrDefault(s => !string.IsNullOrWhiteSpace(s));
+            .FirstOrDefault();
 }

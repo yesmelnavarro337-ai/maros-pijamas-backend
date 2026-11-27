@@ -9,7 +9,7 @@ namespace Maros.Application.Tests.Services;
 
 public class QuotationPriceCalculatorTests
 {
-    private static readonly DateTime PromoDate = new(2026, 10, 20, 12, 0, 0, DateTimeKind.Utc);
+    private static readonly DateTime PromoDate = new(2026, 11, 28, 17, 0, 0, DateTimeKind.Utc);
 
     [Fact]
     public void Infantil_SmallSize_AppliesClean5PercentDiscountWithoutPhantomSurcharge()
@@ -105,6 +105,35 @@ public class QuotationPriceCalculatorTests
         Assert.Equal(5750m, calculation.DiscountAmount); // 5% de 115.000
         Assert.Equal(expectedSurcharge, calculation.SizeSurcharge);
         Assert.Equal(115000m - 5750m + expectedSurcharge, calculation.UnitPrice);
+    }
+
+    [Theory]
+    [InlineData("2026-11-26T23:59:59-05:00", false)]
+    [InlineData("2026-11-27T00:00:00-05:00", true)]
+    [InlineData("2026-11-29T23:59:59-05:00", true)]
+    [InlineData("2026-11-30T00:00:00-05:00", false)]
+    public void IsPromoActive_UsesBlackDaysWindowInBogotaTime(string instant, bool expected)
+    {
+        var date = DateTimeOffset.Parse(instant).UtcDateTime;
+
+        Assert.Equal(expected, QuotationPriceCalculator.IsPromoActive(date));
+    }
+
+    [Fact]
+    public void CalculateItemPrice_OutsideBlackDays_DoesNotApplyDiscount()
+    {
+        var product = new Product { Name = "Pijama Pantalón Dama Seda", BasePrice = 115000m };
+        var item = new QuotationItem { Product = product, Size = "M", Quantity = 1 };
+        var beforePromo = new DateTime(2026, 11, 26, 23, 59, 59, DateTimeKind.Utc);
+        var afterPromo = new DateTime(2026, 11, 30, 6, 0, 1, DateTimeKind.Utc);
+
+        var before = QuotationPriceCalculator.CalculateItemPrice(item, beforePromo);
+        var after = QuotationPriceCalculator.CalculateItemPrice(item, afterPromo);
+
+        Assert.Equal(0m, before.DiscountAmount);
+        Assert.Equal(115000m, before.UnitPrice);
+        Assert.Equal(0m, after.DiscountAmount);
+        Assert.Equal(115000m, after.UnitPrice);
     }
 
     [Fact]

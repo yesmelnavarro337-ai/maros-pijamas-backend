@@ -19,6 +19,9 @@ public record QuotationItemPriceCalculation(
 public static class QuotationPriceCalculator
 {
     public const decimal PromoDiscountPercent = 0.05m;
+    public const string PromoName = "Black Days";
+    public static readonly DateTimeOffset PromoStart = new(2026, 11, 27, 0, 0, 0, TimeSpan.FromHours(-5));
+    public static readonly DateTimeOffset PromoEnd = new(2026, 11, 29, 23, 59, 59, TimeSpan.FromHours(-5));
     // Nota: Las tallas juveniles (10 a 16) NO tienen recargo.
     // Todas las tallas infantiles comparten el mismo precio base del estilo.
     public const decimal AdultXlSurcharge = 10000m;
@@ -38,10 +41,18 @@ public static class QuotationPriceCalculator
 
     public static bool IsPromoActive(DateTime? date = null)
     {
-        var current = date ?? DateTime.UtcNow;
-        var start = new DateTime(current.Year, 10, 4, 0, 0, 0, DateTimeKind.Utc);
-        var end = new DateTime(current.Year, 11, 9, 23, 59, 59, DateTimeKind.Utc);
-        return current >= start && current <= end;
+        var current = date.HasValue ? ToDateTimeOffset(date.Value) : DateTimeOffset.UtcNow;
+        return current >= PromoStart && current <= PromoEnd;
+    }
+
+    private static DateTimeOffset ToDateTimeOffset(DateTime value)
+    {
+        return value.Kind switch
+        {
+            DateTimeKind.Utc => new DateTimeOffset(value),
+            DateTimeKind.Local => new DateTimeOffset(value),
+            _ => new DateTimeOffset(value, TimeSpan.FromHours(-5)),
+        };
     }
 
     public static string Normalize(string? value)
@@ -187,7 +198,7 @@ public static class QuotationPriceCalculator
         var notes = new List<string>();
         if (discountAmount > 0)
         {
-            notes.Add("5% OFF aplicado");
+            notes.Add($"{PromoName} 5% OFF aplicado");
         }
         if (sizeSurcharge > 0)
         {
